@@ -156,3 +156,23 @@ export async function syncNow(
   setCfg({ ...cfg, gistId, lastSynced });
   return { gistId, lastSynced, sessions: Object.keys(merged).length };
 }
+
+/**
+ * Download-only: replace THIS device's data with the cloud copy (no merge).
+ * Useful for restoring a device whose local data got messed up.
+ */
+export async function downloadFromCloud(
+  applyRemote: (logs: Record<string, SessionLog>) => Promise<void>,
+): Promise<SyncResult> {
+  const cfg = getCfg();
+  if (!cfg.token) throw new Error('Add a GitHub token first (gist scope).');
+  if (!cfg.gistId)
+    throw new Error('No gist yet — run Sync once to create one first.');
+
+  const remote = await pull(cfg.token, cfg.gistId);
+  await applyRemote(remote);
+
+  const lastSynced = new Date().toISOString();
+  setCfg({ ...cfg, lastSynced });
+  return { gistId: cfg.gistId, lastSynced, sessions: Object.keys(remote).length };
+}

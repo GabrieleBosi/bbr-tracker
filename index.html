@@ -65,7 +65,12 @@
         placeholder="Gist ID (leave blank to create one)" />
       <div class="row">
         <button class="bigbtn acc" data-sync-now>Sync now</button>
+        <button class="bigbtn" data-sync-download>Download only</button>
       </div>
+      <p class="synchint">
+        <b>Sync now</b> merges this device with the cloud (nothing is lost).
+        <b>Download only</b> overwrites this device with the cloud copy.
+      </p>
       <div class="syncstatus" id="syncStatus"></div>
 
       <button class="bigbtn" data-close-menu>Close</button>

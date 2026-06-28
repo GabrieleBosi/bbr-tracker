@@ -6,7 +6,13 @@ import {
   setLogs,
   type SessionLog,
 } from '../storage/db';
-import { getCfg, setCfg, syncNow } from '../storage/sync';
+import {
+  downloadFromCloud,
+  getCfg,
+  setCfg,
+  syncNow,
+  type SyncResult,
+} from '../storage/sync';
 
 const today = (): string => new Date().toISOString().slice(0, 10);
 
@@ -140,6 +146,10 @@ function initSync(rerender: () => void): void {
     statusEl.textContent = `Last synced ${fmtTime(cfg.lastSynced)}.`;
   }
 
+  const dlBtn = document.querySelector(
+    '[data-sync-download]',
+  ) as HTMLButtonElement;
+
   const persistFields = () => {
     const current = getCfg();
     setCfg({
@@ -151,24 +161,49 @@ function initSync(rerender: () => void): void {
   tokenEl.addEventListener('change', persistFields);
   gistEl.addEventListener('change', persistFields);
 
-  syncBtn.addEventListener('click', async () => {
+  // Shared runner for both cloud actions: busy state, status, error handling.
+  const run = async (
+    btn: HTMLButtonElement,
+    busyLabel: string,
+    verb: string,
+    action: () => Promise<SyncResult>,
+  ) => {
     persistFields();
+    const label = btn.textContent;
     syncBtn.disabled = true;
-    syncBtn.textContent = 'Syncing…';
+    dlBtn.disabled = true;
+    btn.textContent = busyLabel;
     statusEl.className = 'syncstatus';
     statusEl.textContent = 'Contacting GitHub…';
     try {
-      const res = await syncNow(getLogs(), setLogs);
+      const res = await action();
       gistEl.value = res.gistId;
       statusEl.className = 'syncstatus ok';
-      statusEl.textContent = `Synced ${res.sessions} sessions at ${fmtTime(res.lastSynced)}. Gist: ${res.gistId}`;
+      statusEl.textContent = `${verb} ${res.sessions} sessions at ${fmtTime(res.lastSynced)}. Gist: ${res.gistId}`;
       rerender();
     } catch (e) {
       statusEl.className = 'syncstatus err';
       statusEl.textContent = e instanceof Error ? e.message : 'Sync failed.';
     } finally {
       syncBtn.disabled = false;
-      syncBtn.textContent = 'Sync now';
+      dlBtn.disabled = false;
+      btn.textContent = label;
     }
+  };
+
+  syncBtn.addEventListener('click', () =>
+    run(syncBtn, 'Syncing…', 'Synced', () => syncNow(getLogs(), setLogs)),
+  );
+
+  dlBtn.addEventListener('click', () => {
+    if (
+      !confirm(
+        'Replace ALL data on THIS device with the cloud copy? Any changes made only on this device will be lost.',
+      )
+    )
+      return;
+    void run(dlBtn, 'Downloading…', 'Downloaded', () =>
+      downloadFromCloud(setLogs),
+    );
   });
 }
