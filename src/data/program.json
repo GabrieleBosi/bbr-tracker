@@ -1,0 +1,627 @@
+{
+  "meta": {
+    "program": "Body By Rings (Fitness FAQs / Daniel Vadnal)",
+    "structure": "3 phases. Each phase = 5 progression weeks + 1 deload week. Each week = 4 sessions: Push 1, Pull 1, Push 2, Pull 2.",
+    "exercise_fields": [
+      "letter",
+      "name",
+      "intensity_cue",
+      "sets",
+      "reps",
+      "tempo",
+      "rest"
+    ],
+    "tempo_notation": "4 digits = eccentric/bottom-pause/concentric/top-pause seconds (e.g. 30X1 = 3s down, 0s pause, eXplosive up, 1s hold). Letters: X=explosive, s=isometric hold.",
+    "progression": "Double progression. Add reps each week within the rep range; once all sets hit the TOP of the range, add a set (up to the set-range max) or move to the harder intensity/variation, then reset reps to the low end.",
+    "deload_rule": "On deload weeks cut to 1-2 sets per exercise (2-3 for the main vertical pull: chin-up / wide pull-up). Keep the same reps and tempo, leave 3-4 reps in reserve.",
+    "source": "Verified against 18 Week Training Program.pdf — exercise counts per session: P1[5,5,5,4] P2[6,5,5,5] P3[6,5,6,6]."
+  },
+  "phases": {
+    "1": {
+      "name": "Phase 1",
+      "sessions": {
+        "Push 1": [
+          [
+            "A1",
+            "Ring Dip",
+            "Elbows in",
+            "3-4",
+            "6-8",
+            "30X1",
+            "1:30"
+          ],
+          [
+            "B1",
+            "Archer Pushup",
+            "Alternating",
+            "3-4",
+            "4-6 L&R",
+            "20X0",
+            "1:30"
+          ],
+          [
+            "C1",
+            "Chest Fly",
+            "",
+            "3",
+            "8-10",
+            "30X0",
+            "1:30"
+          ],
+          [
+            "D1",
+            "Tricep Dip",
+            "",
+            "3",
+            "6-10",
+            "20X0",
+            "1:30"
+          ],
+          [
+            "E1",
+            "Tricep Extension",
+            "",
+            "3",
+            "8-10",
+            "30X1",
+            "1:30"
+          ]
+        ],
+        "Pull 1": [
+          [
+            "A1",
+            "Chinup",
+            "Regular, Tuck-L or L-Sit",
+            "3-5",
+            "6-8",
+            "30X2",
+            "2:00-3:00"
+          ],
+          [
+            "B1",
+            "Bodyweight Row",
+            "Two arms",
+            "3-4",
+            "10-15 L&R",
+            "20X1",
+            "1:30"
+          ],
+          [
+            "C1",
+            "Pelican Curl",
+            "",
+            "3",
+            "5-8",
+            "30X0",
+            "1:30"
+          ],
+          [
+            "D1",
+            "Face Pull",
+            "",
+            "3",
+            "8-10",
+            "30X0",
+            "1:30"
+          ],
+          [
+            "E1",
+            "Ring Rollout",
+            "",
+            "3",
+            "8-10",
+            "40X0",
+            "1:30"
+          ]
+        ],
+        "Push 2": [
+          [
+            "A1",
+            "Ring Dip",
+            "Elbows in",
+            "3-4",
+            "6-8",
+            "30X1",
+            "1:30"
+          ],
+          [
+            "B1",
+            "Shoulder Pushup",
+            "Feet on floor",
+            "3-4",
+            "4-8",
+            "30X1",
+            "1:30"
+          ],
+          [
+            "C1",
+            "Bulgarian Pushup",
+            "",
+            "3-4",
+            "6-10",
+            "20X0",
+            "1:30"
+          ],
+          [
+            "D1",
+            "Shoulder Shrug",
+            "Back to wall",
+            "3-4",
+            "8-12",
+            "2s iso",
+            "1:30"
+          ],
+          [
+            "E1",
+            "Tricep Dip",
+            "",
+            "3",
+            "6-10",
+            "20X0",
+            "1:30"
+          ]
+        ],
+        "Pull 2": [
+          [
+            "A1",
+            "Mantle Chinup",
+            "",
+            "3-5",
+            "4-6 L&R",
+            "30X2",
+            "1:30"
+          ],
+          [
+            "B1",
+            "Archer Bodyweight Row",
+            "",
+            "3-4",
+            "4-8 L&R",
+            "20X0",
+            "1:30"
+          ],
+          [
+            "C1",
+            "Face Pull",
+            "",
+            "3",
+            "8-10",
+            "20X0",
+            "1:30"
+          ],
+          [
+            "D1",
+            "Bodyweight Bicep Curl",
+            "",
+            "3-4",
+            "8-10",
+            "30X1",
+            "1:30"
+          ]
+        ]
+      }
+    },
+    "2": {
+      "name": "Phase 2",
+      "sessions": {
+        "Push 1": [
+          [
+            "A1",
+            "Ring Dip",
+            "Elbows in",
+            "3-4",
+            "8-10",
+            "30X1",
+            "1:30"
+          ],
+          [
+            "B1",
+            "Archer Pushup",
+            "Alternating",
+            "3-4",
+            "6-8 L&R",
+            "20X0",
+            "1:30"
+          ],
+          [
+            "C1",
+            "Chest Fly",
+            "",
+            "3",
+            "8-12",
+            "30X0",
+            "1:30"
+          ],
+          [
+            "D1",
+            "Tricep Dip",
+            "",
+            "3",
+            "8-15",
+            "30X0",
+            "1:30"
+          ],
+          [
+            "E1",
+            "Tricep Extension",
+            "",
+            "3-4",
+            "8-12",
+            "30X1",
+            "1:30"
+          ],
+          [
+            "F1",
+            "Diamond Pushup",
+            "Feet elevated / down series",
+            "1",
+            "8-15!",
+            "30X1",
+            "self"
+          ]
+        ],
+        "Pull 1": [
+          [
+            "A1",
+            "Wide Pullup",
+            "Tuck-L",
+            "3-4",
+            "6-12",
+            "30X0",
+            "2:00-3:00"
+          ],
+          [
+            "B1",
+            "Archer Bodyweight Row",
+            "",
+            "3-4",
+            "6-8 L&R",
+            "20X0",
+            "1:30"
+          ],
+          [
+            "C1",
+            "Pelican Curl",
+            "",
+            "3",
+            "6-10",
+            "30X0",
+            "1:30"
+          ],
+          [
+            "D1",
+            "Rear Delt Fly",
+            "",
+            "3",
+            "8-12",
+            "30X0",
+            "1:30"
+          ],
+          [
+            "E1",
+            "Ring Rollout",
+            "",
+            "3",
+            "10-12",
+            "40X0",
+            "1:30"
+          ]
+        ],
+        "Push 2": [
+          [
+            "A1",
+            "Ring Dip",
+            "Bulgarian",
+            "3-4",
+            "5-8",
+            "30X1",
+            "1:30"
+          ],
+          [
+            "B1",
+            "Shoulder Pushup",
+            "Feet elevated",
+            "3-4",
+            "6-10",
+            "40X1",
+            "1:30"
+          ],
+          [
+            "C1",
+            "Bulgarian Pushup",
+            "",
+            "3-4",
+            "8-10",
+            "30X1",
+            "1:30"
+          ],
+          [
+            "D1",
+            "Shoulder Tap",
+            "Chest to wall",
+            "3-4",
+            "30-45s",
+            "-",
+            "1:30"
+          ],
+          [
+            "E1",
+            "Tricep Dip",
+            "",
+            "3-4",
+            "6-10",
+            "20X0",
+            "1:30"
+          ]
+        ],
+        "Pull 2": [
+          [
+            "A1",
+            "Archer Chinup",
+            "Alternating",
+            "4-6",
+            "3-5 L&R",
+            "30X0",
+            "1:30"
+          ],
+          [
+            "B1",
+            "Single Arm Row",
+            "",
+            "3-4",
+            "4-8 L&R",
+            "30X0",
+            "1:30"
+          ],
+          [
+            "C1",
+            "Face Pull",
+            "",
+            "3-4",
+            "8-12",
+            "20X0",
+            "1:30"
+          ],
+          [
+            "D1",
+            "Bodyweight Bicep Curl",
+            "",
+            "3-4",
+            "8-12",
+            "30X1",
+            "1:30"
+          ],
+          [
+            "E1",
+            "Two Arm Hang",
+            "Accumulate",
+            "-",
+            "2:00-4:00",
+            "-",
+            "self"
+          ]
+        ]
+      }
+    },
+    "3": {
+      "name": "Phase 3",
+      "sessions": {
+        "Push 1": [
+          [
+            "A1",
+            "Handstand Pushup",
+            "Chest to wall / accumulate",
+            "-",
+            "20 min",
+            "30X1",
+            "self"
+          ],
+          [
+            "B1",
+            "Ring Dip",
+            "Bulgarian",
+            "3-5",
+            "5-8",
+            "30X1",
+            "2:00"
+          ],
+          [
+            "C1",
+            "Archer Pushup",
+            "Same side",
+            "3-5",
+            "6-8 L&R",
+            "30X1",
+            "2:00"
+          ],
+          [
+            "D1",
+            "Chest Fly",
+            "",
+            "4-5",
+            "6-8",
+            "30X0",
+            "2:00"
+          ],
+          [
+            "E1",
+            "Tricep Extension",
+            "",
+            "5-6",
+            "5-6",
+            "30X1",
+            "2:00"
+          ],
+          [
+            "F1",
+            "Tricep Dip",
+            "",
+            "3-4",
+            "8-12",
+            "30X0",
+            "2:00"
+          ]
+        ],
+        "Pull 1": [
+          [
+            "A1",
+            "Wide Pullup",
+            "L-Sit",
+            "3-5",
+            "5-8",
+            "30X0",
+            "2:00-3:00"
+          ],
+          [
+            "B1",
+            "L-Row",
+            "",
+            "3-5",
+            "3-8",
+            "30X0",
+            "2:00"
+          ],
+          [
+            "C1",
+            "Pelican Curl",
+            "",
+            "3-4",
+            "6-10",
+            "40X0",
+            "2:00"
+          ],
+          [
+            "D1",
+            "Rear Delt Fly",
+            "",
+            "3-4",
+            "8-15",
+            "30X0",
+            "2:00"
+          ],
+          [
+            "E1",
+            "Ring Rollout",
+            "",
+            "3",
+            "10-15",
+            "40X1",
+            "2:00"
+          ]
+        ],
+        "Push 2": [
+          [
+            "A1",
+            "Ring Dip",
+            "Elbows in",
+            "3-5",
+            "8-12",
+            "30X1",
+            "2:00"
+          ],
+          [
+            "B1",
+            "Shoulder Pushup",
+            "Feet elevated",
+            "3-5",
+            "6-10",
+            "30X1",
+            "2:00"
+          ],
+          [
+            "C1",
+            "Bulgarian Pushup",
+            "",
+            "3-5",
+            "10-15",
+            "30X1",
+            "2:00"
+          ],
+          [
+            "D1",
+            "Waist Tap",
+            "Chest to wall",
+            "3-5",
+            "30-45s",
+            "-",
+            "2:00"
+          ],
+          [
+            "E1",
+            "Tricep Dip",
+            "",
+            "3-4",
+            "10-12",
+            "30X1",
+            "2:00"
+          ],
+          [
+            "F1",
+            "Diamond Pushup",
+            "Feet elevated / down series",
+            "2",
+            "8-12!",
+            "30X1",
+            "self"
+          ]
+        ],
+        "Pull 2": [
+          [
+            "A1",
+            "Archer Chinup",
+            "Same side",
+            "3-5",
+            "4-8 L&R",
+            "30X1",
+            "1:30"
+          ],
+          [
+            "B1",
+            "Single Arm Row",
+            "",
+            "3-5",
+            "6-10 L&R",
+            "30X0",
+            "2:00"
+          ],
+          [
+            "C1",
+            "Face Pull",
+            "",
+            "3-4",
+            "8-12",
+            "20X0",
+            "2:00"
+          ],
+          [
+            "D1",
+            "Pelican Curl Negative",
+            "",
+            "3",
+            "3-4 (6-8s)",
+            "10s ecc",
+            "2:00"
+          ],
+          [
+            "E1",
+            "Bodyweight Bicep Curl",
+            "",
+            "3-4",
+            "6-10",
+            "30X1",
+            "2:00"
+          ],
+          [
+            "F1",
+            "One Arm Hang",
+            "Accumulate",
+            "-",
+            "2:00-4:00",
+            "-",
+            "self"
+          ]
+        ]
+      }
+    }
+  }
+}

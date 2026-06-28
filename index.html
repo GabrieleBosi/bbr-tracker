@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0f14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BBR" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <title>Body By Rings — Tracker</title>
+</head>
+<body>
+  <header>
+    <div class="htop">
+      <div class="brand">Body By <span>Rings</span></div>
+      <button class="iconbtn" data-open-menu>Data</button>
+    </div>
+    <div class="pills" id="phasePills"></div>
+    <div class="pills" id="weekPills"></div>
+    <div class="pills" id="sessPills"></div>
+  </header>
+
+  <div class="wrap">
+    <div id="deloadBanner"></div>
+    <div id="exList"></div>
+    <div class="foot" id="footNote"></div>
+  </div>
+
+  <div id="rest">
+    <div class="restbar">
+      <div>Rest<br /><span class="resttime" id="restTime">0:00</span></div>
+      <div>
+        <button data-rest-add>+30s</button>
+        <button data-rest-done>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="menu">
+    <div class="sheet">
+      <h3>Your data</h3>
+      <p>Everything saves on this device automatically. Export a backup regularly so a cleared browser never wipes your log.</p>
+      <div class="row">
+        <button class="bigbtn acc" data-export-json>Backup (JSON)</button>
+        <button class="bigbtn" data-export-csv>Export CSV</button>
+      </div>
+      <div class="row">
+        <button class="bigbtn" data-restore>Restore backup</button>
+        <input type="file" id="imp" accept="application/json" style="display: none" />
+        <button class="bigbtn warn" data-wipe>Reset all</button>
+      </div>
+      <button class="bigbtn" data-close-menu>Close</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
