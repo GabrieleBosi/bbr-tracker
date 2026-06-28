@@ -14,6 +14,8 @@ import {
   setCur,
   type ExEntry,
 } from '../storage/db';
+import { weeklyStats } from '../logic/stats';
+import { renderChartSVG } from './chart';
 import { initDataMenu } from './dataMenu';
 import { initRestControls, startRest } from './restTimer';
 
@@ -224,7 +226,9 @@ function card(ex: Exercise): HTMLElement {
   restBtn.addEventListener('click', () => startRest(ex.rest));
   const histBtn = makeEl('button', 'mini');
   histBtn.textContent = 'History';
-  foot.append(addBtn, delBtn, restBtn, histBtn);
+  const chartBtn = makeEl('button', 'mini');
+  chartBtn.textContent = 'Chart';
+  foot.append(addBtn, delBtn, restBtn, histBtn, chartBtn);
   c.append(foot);
 
   const hist = makeEl('div', 'hist');
@@ -241,6 +245,22 @@ function card(ex: Exercise): HTMLElement {
     }
   });
   c.append(hist);
+
+  const chart = makeEl('div', 'chart');
+  chart.style.display = 'none';
+  chartBtn.addEventListener('click', () => {
+    if (chart.style.display === 'none') {
+      chart.innerHTML = renderChartSVG(
+        weeklyStats(getMemory(), cur.phase, cur.session, ek),
+      );
+      chart.style.display = 'block';
+      chartBtn.classList.add('acc');
+    } else {
+      chart.style.display = 'none';
+      chartBtn.classList.remove('acc');
+    }
+  });
+  c.append(chart);
 
   const noteWrap = makeEl('div', 'cardnote');
   const note = makeEl('input', 'note');

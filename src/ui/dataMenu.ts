@@ -1,9 +1,12 @@
 import {
   clearAll,
   exportData,
+  getLogs,
   importData,
+  setLogs,
   type SessionLog,
 } from '../storage/db';
+import { getCfg, setCfg, syncNow } from '../storage/sync';
 
 const today = (): string => new Date().toISOString().slice(0, 10);
 
@@ -107,6 +110,65 @@ export function initDataMenu(rerender: () => void): void {
       await clearAll();
       rerender();
       close();
+    }
+  });
+
+  initSync(rerender);
+}
+
+function fmtTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function initSync(rerender: () => void): void {
+  const tokenEl = document.getElementById('syncToken') as HTMLInputElement;
+  const gistEl = document.getElementById('syncGist') as HTMLInputElement;
+  const statusEl = document.getElementById('syncStatus')!;
+  const syncBtn = document.querySelector('[data-sync-now]') as HTMLButtonElement;
+
+  const cfg = getCfg();
+  if (cfg.token) tokenEl.value = cfg.token;
+  if (cfg.gistId) gistEl.value = cfg.gistId;
+  if (cfg.lastSynced) {
+    statusEl.className = 'syncstatus';
+    statusEl.textContent = `Last synced ${fmtTime(cfg.lastSynced)}.`;
+  }
+
+  const persistFields = () => {
+    const current = getCfg();
+    setCfg({
+      ...current,
+      token: tokenEl.value.trim() || undefined,
+      gistId: gistEl.value.trim() || undefined,
+    });
+  };
+  tokenEl.addEventListener('change', persistFields);
+  gistEl.addEventListener('change', persistFields);
+
+  syncBtn.addEventListener('click', async () => {
+    persistFields();
+    syncBtn.disabled = true;
+    syncBtn.textContent = 'Syncing…';
+    statusEl.className = 'syncstatus';
+    statusEl.textContent = 'Contacting GitHub…';
+    try {
+      const res = await syncNow(getLogs(), setLogs);
+      gistEl.value = res.gistId;
+      statusEl.className = 'syncstatus ok';
+      statusEl.textContent = `Synced ${res.sessions} sessions at ${fmtTime(res.lastSynced)}. Gist: ${res.gistId}`;
+      rerender();
+    } catch (e) {
+      statusEl.className = 'syncstatus err';
+      statusEl.textContent = e instanceof Error ? e.message : 'Sync failed.';
+    } finally {
+      syncBtn.disabled = false;
+      syncBtn.textContent = 'Sync now';
     }
   });
 }

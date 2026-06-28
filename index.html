@@ -51,6 +51,23 @@
         <input type="file" id="imp" accept="application/json" style="display: none" />
         <button class="bigbtn warn" data-wipe>Reset all</button>
       </div>
+
+      <h3 class="synch">Sync across devices</h3>
+      <p>
+        Optional. Merges this device with a <b>private GitHub Gist</b> so phone and
+        laptop stay in step. Needs a token with the <b>gist</b> scope
+        (<a href="https://github.com/settings/tokens/new?scopes=gist&description=BBR%20Tracker" target="_blank" rel="noopener">create one</a>).
+        The token is stored only on this device, never in the app.
+      </p>
+      <input class="syncin" id="syncToken" type="password" autocomplete="off"
+        placeholder="GitHub token (gist scope)" />
+      <input class="syncin" id="syncGist" autocomplete="off"
+        placeholder="Gist ID (leave blank to create one)" />
+      <div class="row">
+        <button class="bigbtn acc" data-sync-now>Sync now</button>
+      </div>
+      <div class="syncstatus" id="syncStatus"></div>
+
       <button class="bigbtn" data-close-menu>Close</button>
     </div>
   </div>

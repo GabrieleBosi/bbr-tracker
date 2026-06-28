@@ -140,3 +140,20 @@ export async function clearAll(): Promise<void> {
   await tx.objectStore('meta').put(cur, 'cur');
   await tx.done;
 }
+
+/** Just the workout logs (no `cur`), for cloud sync. */
+export function getLogs(): Record<string, SessionLog> {
+  const out: Record<string, SessionLog> = {};
+  for (const k of Object.keys(memory)) out[k] = memory[k];
+  return out;
+}
+
+/** Replace all logs (e.g. after a sync merge), leaving `cur` untouched. */
+export async function setLogs(logs: Record<string, SessionLog>): Promise<void> {
+  for (const k of Object.keys(memory)) delete memory[k];
+  Object.assign(memory, logs);
+  const tx = db.transaction('logs', 'readwrite');
+  await tx.objectStore('logs').clear();
+  for (const k of Object.keys(logs)) await tx.objectStore('logs').put(logs[k], k);
+  await tx.done;
+}

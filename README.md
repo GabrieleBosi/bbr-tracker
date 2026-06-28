@@ -10,6 +10,18 @@ calisthenics workouts from your phone during training.
 - **Rest timer** with vibrate + beep, per-exercise **history**, **deload** banner.
 - Data lives in **IndexedDB** (robust, offline). **JSON backup/restore** + **CSV export**.
 - Real **PWA**: web manifest + service worker → installs to the home screen, works offline.
+- Per-exercise **progress chart** (total reps per week + top-set marker), drawn as inline SVG.
+- Optional **cross-device sync** via a private GitHub Gist (token stays on-device).
+
+## Cross-device sync
+
+Local-first and additive — the app is fully usable without it. In **Data → Sync**,
+paste a GitHub token with the **`gist`** scope and tap **Sync now**. The app pulls the
+gist, merges it with local data (union; on conflict the more-logged entry wins), writes
+the merged result back, and pushes it up. The first sync creates a private gist and
+remembers its id. The token is stored only in this browser's `localStorage` — it is
+never committed to the repo or included in the JSON backup. Because GitHub Pages is
+served from a **public** repo (free tier), never hard-code a token in the source.
 
 ## Stack
 
