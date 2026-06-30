@@ -13,6 +13,7 @@ import {
   syncNow,
   type SyncResult,
 } from '../storage/sync';
+import { normalizeLogKey } from '../logic/progression';
 
 const today = (): string => new Date().toISOString().slice(0, 10);
 
@@ -37,17 +38,18 @@ function exportJSON(): void {
 function exportCSV(): void {
   const data = exportData();
   const rows: (string | number)[][] = [
-    ['phase', 'week', 'session', 'exercise', 'set', 'reps', 'load', 'note'],
+    ['program', 'phase', 'week', 'session', 'exercise', 'set', 'reps', 'load', 'note'],
   ];
   for (const lk of Object.keys(data)) {
     if (lk === 'cur') continue;
-    const [phase, week, session] = lk.split('|');
+    const [program, phase, week, session] = normalizeLogKey(lk).split('|');
     const log = data[lk] as SessionLog;
     for (const ek of Object.keys(log)) {
       const entry = log[ek];
       entry.sets.forEach((st, i) => {
         if (st.reps !== '') {
           rows.push([
+            program,
             phase,
             week,
             session,

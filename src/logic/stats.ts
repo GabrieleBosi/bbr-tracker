@@ -1,5 +1,5 @@
 import type { SessionLog } from '../storage/db';
-import { WEEKS, logKey } from './progression';
+import { logKey } from './progression';
 
 export interface WeekStat {
   week: string;
@@ -9,16 +9,18 @@ export interface WeekStat {
   hasData: boolean;
 }
 
-/** Total reps and top set per week (current phase) for one exercise. */
+/** Total reps and top set per week (current program + group) for one exercise. */
 export function weeklyStats(
   store: Record<string, SessionLog>,
+  program: string,
   phase: string,
   session: string,
   ek: string,
+  weeks: string[],
 ): WeekStat[] {
-  return WEEKS.map((week) => {
+  return weeks.map((week) => {
     const label = week === 'Deload' ? 'D' : week.replace('Week ', 'W');
-    const e = (store[logKey(phase, week, session)] || {})[ek];
+    const e = (store[logKey(program, phase, week, session)] || {})[ek];
     if (e && e.sets.some((x) => x.reps !== '')) {
       const reps = e.sets.map((x) => parseInt(x.reps) || 0);
       return {

@@ -1,15 +1,16 @@
-import { PHASE_KEYS, PROGRAM, type Exercise } from '../data/program';
 import {
-  WEEKS,
-  exKey,
-  lastTime,
-  logKey,
-  suggest,
-} from '../logic/progression';
+  PROGRAM_IDS,
+  getProgram,
+  type Exercise,
+  type ProgramId,
+} from '../data/program';
+import { exKey, lastTime, logKey, suggest } from '../logic/progression';
 import {
   ensureEntry,
   getCur,
   getMemory,
+  justMigrated,
+  rememberedSel,
   saveLog,
   setCur,
   type ExEntry,
@@ -20,6 +21,7 @@ import { initDataMenu } from './dataMenu';
 import { initRestControls, startRest } from './restTimer';
 
 const cssId = (s: string): string => s.replace(/[^a-zA-Z0-9]/g, '_');
+const MIGRATE_ACK = 'bbr_migrate_ack_v2';
 
 function makeEl<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -30,19 +32,28 @@ function makeEl<K extends keyof HTMLElementTagNameMap>(
   return e;
 }
 
+function curLogKey(): string {
+  const cur = getCur();
+  return logKey(cur.program, cur.phase, cur.week, cur.session);
+}
+
 /** The live entry for an exKey in the currently selected session. */
 function curEntry(ek: string): ExEntry {
-  const cur = getCur();
-  return getMemory()[logKey(cur.phase, cur.week, cur.session)][ek];
+  return getMemory()[curLogKey()][ek];
 }
 
 function persistCur(): void {
-  const cur = getCur();
-  saveLog(logKey(cur.phase, cur.week, cur.session));
+  saveLog(curLogKey());
 }
 
-function pill(label: string, on: boolean, sess: boolean, onClick: () => void) {
-  const b = makeEl('button', `pill${sess ? ' sess' : ''}${on ? ' on' : ''}`);
+function pill(
+  label: string,
+  on: boolean,
+  variant: '' | 'sess' | 'prog',
+  onClick: () => void,
+) {
+  const cls = ['pill', variant, on ? 'on' : ''].filter(Boolean).join(' ');
+  const b = makeEl('button', cls);
   b.textContent = label;
   b.addEventListener('click', onClick);
   return b;
@@ -50,14 +61,26 @@ function pill(label: string, on: boolean, sess: boolean, onClick: () => void) {
 
 function renderSelectors(): void {
   const cur = getCur();
+  const prog = getProgram(cur.program);
+
+  const programPills = document.getElementById('programPills')!;
+  programPills.replaceChildren(
+    ...PROGRAM_IDS.map((id) =>
+      pill(getProgram(id).short, cur.program === id, 'prog', () => {
+        if (id === cur.program) return;
+        setCur({ program: id, ...rememberedSel(id) });
+        render();
+      }),
+    ),
+  );
 
   const pp = document.getElementById('phasePills')!;
   pp.replaceChildren(
-    ...PHASE_KEYS.map((p) =>
-      pill(`Phase ${p}`, cur.phase === p, false, () => {
-        const next = { ...cur, phase: p };
-        if (!PROGRAM[p].sessions[next.session]) {
-          next.session = Object.keys(PROGRAM[p].sessions)[0];
+    ...Object.keys(prog.groups).map((g) =>
+      pill(prog.groups[g].name, cur.phase === g, '', () => {
+        const next = { ...cur, phase: g };
+        if (!prog.groups[g].sessions[next.session]) {
+          next.session = Object.keys(prog.groups[g].sessions)[0];
         }
         setCur(next);
         render();
@@ -67,8 +90,8 @@ function renderSelectors(): void {
 
   const wp = document.getElementById('weekPills')!;
   wp.replaceChildren(
-    ...WEEKS.map((w) =>
-      pill(w, cur.week === w, false, () => {
+    ...prog.weeks.map((w) =>
+      pill(w, cur.week === w, '', () => {
         setCur({ ...cur, week: w });
         render();
       }),
@@ -77,8 +100,8 @@ function renderSelectors(): void {
 
   const sp = document.getElementById('sessPills')!;
   sp.replaceChildren(
-    ...Object.keys(PROGRAM[cur.phase].sessions).map((s) =>
-      pill(s, cur.session === s, true, () => {
+    ...Object.keys(prog.groups[cur.phase].sessions).map((s) =>
+      pill(s, cur.session === s, 'sess', () => {
         setCur({ ...cur, session: s });
         render();
       }),
@@ -147,10 +170,11 @@ function setRow(ek: string, i: number, st: ExEntry['sets'][number]) {
 
 function historyRows(ek: string): string {
   const cur = getCur();
+  const prog = getProgram(cur.program);
   const store = getMemory();
   let rows = '';
-  for (const w of WEEKS) {
-    const e = (store[logKey(cur.phase, w, cur.session)] || {})[ek];
+  for (const w of prog.weeks) {
+    const e = (store[logKey(cur.program, cur.phase, w, cur.session)] || {})[ek];
     if (e && e.sets.some((x) => x.reps !== '')) {
       const v = e.sets
         .filter((x) => x.reps !== '')
@@ -165,8 +189,9 @@ function historyRows(ek: string): string {
 
 function card(ex: Exercise): HTMLElement {
   const cur = getCur();
+  const prog = getProgram(cur.program);
   const ek = exKey(ex.letter, ex.name);
-  const entry = ensureEntry(cur.phase, cur.week, cur.session, ex);
+  const entry = ensureEntry(cur.program, cur.phase, cur.week, cur.session, ex);
   const c = makeEl('div', 'card');
 
   const head = makeEl('div', 'chead');
@@ -184,7 +209,15 @@ function card(ex: Exercise): HTMLElement {
   c.append(meta);
 
   const last = makeEl('div', 'last');
-  const lt = lastTime(getMemory(), cur.phase, cur.session, ek, cur.week);
+  const lt = lastTime(
+    getMemory(),
+    cur.program,
+    cur.phase,
+    cur.session,
+    ek,
+    cur.week,
+    prog.weeks,
+  );
   if (lt) {
     const prev = lt.e.sets
       .filter((x) => x.reps !== '')
@@ -251,7 +284,14 @@ function card(ex: Exercise): HTMLElement {
   chartBtn.addEventListener('click', () => {
     if (chart.style.display === 'none') {
       chart.innerHTML = renderChartSVG(
-        weeklyStats(getMemory(), cur.phase, cur.session, ek),
+        weeklyStats(
+          getMemory(),
+          cur.program,
+          cur.phase,
+          cur.session,
+          ek,
+          prog.weeks,
+        ),
       );
       chart.style.display = 'block';
       chartBtn.classList.add('acc');
@@ -264,7 +304,10 @@ function card(ex: Exercise): HTMLElement {
 
   const noteWrap = makeEl('div', 'cardnote');
   const note = makeEl('input', 'note');
-  note.placeholder = 'Notes (variation, RPE, pain…)';
+  note.placeholder =
+    cur.program === 'atg'
+      ? 'Pain-free? Add load next set · notes…'
+      : 'Notes (variation, RPE, pain…)';
   note.value = entry.note || '';
   note.addEventListener('input', () => {
     curEntry(ek).note = note.value;
@@ -276,23 +319,48 @@ function card(ex: Exercise): HTMLElement {
   return c;
 }
 
+function renderMigrateBanner(): void {
+  const el = document.getElementById('migrateBanner')!;
+  if (!justMigrated() || localStorage.getItem(MIGRATE_ACK)) {
+    el.innerHTML = '';
+    return;
+  }
+  const banner = makeEl('div', 'migrate');
+  banner.innerHTML =
+    '<b>Big update: ATG added.</b> Your existing BBR logs were upgraded to the new format. ' +
+    'Tap <b>Data → Backup (JSON)</b> to keep a safety copy.';
+  const ack = makeEl('button', 'mini');
+  ack.textContent = 'Got it';
+  ack.addEventListener('click', () => {
+    localStorage.setItem(MIGRATE_ACK, '1');
+    el.innerHTML = '';
+  });
+  banner.append(' ', ack);
+  el.replaceChildren(banner);
+}
+
+function setBrand(program: ProgramId): void {
+  const brand = document.getElementById('brand');
+  if (brand) brand.innerHTML = getProgram(program).brandHtml;
+}
+
 export function render(): void {
   const cur = getCur();
+  const prog = getProgram(cur.program);
+  setBrand(cur.program);
   renderSelectors();
+  renderMigrateBanner();
 
   const db = document.getElementById('deloadBanner')!;
-  db.innerHTML =
-    cur.week === 'Deload'
-      ? '<div class="deload"><b>Deload week.</b> Cut volume hard — do <b>1–2 sets</b> per exercise (2–3 for your main pull-up/chin-up). Same reps and tempo, leave 3–4 reps in the tank. Recover.</div>'
-      : '';
+  db.innerHTML = cur.week === 'Deload' ? prog.deloadHtml : '';
 
   const list = document.getElementById('exList')!;
   list.replaceChildren(
-    ...PROGRAM[cur.phase].sessions[cur.session].map((ex) => card(ex)),
+    ...prog.groups[cur.phase].sessions[cur.session].map((ex) => card(ex)),
   );
 
   document.getElementById('footNote')!.textContent =
-    `${PROGRAM[cur.phase].name} · ${cur.session} · ${cur.week}  ·  saved on this device`;
+    `${prog.short} · ${prog.groups[cur.phase].name} · ${cur.session} · ${cur.week}  ·  saved on this device`;
 }
 
 export function renderApp(): void {

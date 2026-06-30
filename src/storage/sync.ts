@@ -1,3 +1,4 @@
+import { normalizeLogKey } from '../logic/progression';
 import type { ExEntry, SessionLog } from './db';
 
 /**
@@ -103,7 +104,11 @@ async function pull(
     : file.content;
   try {
     const blob = JSON.parse(content) as SyncBlob;
-    return blob.logs || {};
+    const logs = blob.logs || {};
+    // Normalize legacy 3-part keys so they merge instead of duplicating.
+    const out: Record<string, SessionLog> = {};
+    for (const k of Object.keys(logs)) out[normalizeLogKey(k)] = logs[k];
+    return out;
   } catch {
     return {};
   }

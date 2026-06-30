@@ -8,6 +8,7 @@
   --acc: #46d39a;
   --acc2: #f0b84c;
   --danger: #e0596b;
+  --acc3: #7aa2ff;
   --rad: 16px;
 }
 * {
@@ -95,6 +96,19 @@ header {
   color: #3a2a05;
   border-color: var(--acc2);
 }
+#programPills {
+  padding-top: 8px;
+}
+.pill.prog {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 13px;
+}
+.pill.prog.on {
+  background: var(--acc3);
+  color: #07152e;
+  border-color: var(--acc3);
+}
 .deload {
   background: linear-gradient(90deg, #3a2a05, #241c08);
   border: 1px solid #5a4310;
@@ -104,6 +118,22 @@ header {
   margin: 12px 0;
   font-size: 13.5px;
   line-height: 1.5;
+}
+.migrate {
+  background: linear-gradient(90deg, #0e2342, #0b1830);
+  border: 1px solid #234876;
+  color: var(--acc3);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.migrate b {
+  color: #cfe0ff;
+}
+.migrate .mini {
+  margin-top: 8px;
 }
 .card {
   background: var(--card);

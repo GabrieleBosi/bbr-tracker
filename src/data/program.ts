@@ -1,6 +1,7 @@
-import raw from './program.json';
+import bbrRaw from './program.json';
+import atgRaw from './atg_program.json';
 
-/** One exercise row from the program. */
+/** One exercise row from a program. */
 export interface Exercise {
   letter: string;
   name: string;
@@ -11,19 +12,38 @@ export interface Exercise {
   rest: string;
 }
 
-export interface Phase {
-  name: string;
-  /** Keyed by session name: "Push 1", "Pull 1", "Push 2", "Pull 2". */
+/** One group of sessions: a BBR Phase or an ATG Block. */
+export interface ProgramGroup {
+  name: string; // "Phase 1" / "Block 1" — used as the group pill label
   sessions: Record<string, Exercise[]>;
 }
 
-export type Program = Record<string, Phase>;
+export interface AtgStandard {
+  name: string;
+  target: string;
+}
 
-type RawPhase = { name: string; sessions: Record<string, string[][]> };
-type RawProgram = {
-  meta: Record<string, unknown>;
-  phases: Record<string, RawPhase>;
-};
+export type ProgramId = 'bbr' | 'atg';
+
+export interface ProgramDef {
+  id: ProgramId;
+  name: string; // full name
+  short: string; // pill label: "BBR" / "ATG"
+  brandHtml: string; // header brand markup
+  groupNoun: string; // "Phase" / "Block"
+  weeks: string[]; // week names, in order
+  /** Keyed by group key ("1","2","3"). */
+  groups: Record<string, ProgramGroup>;
+  deloadHtml: string;
+  standards?: AtgStandard[];
+}
+
+/** A selection within a program (no program id). */
+export interface Sel {
+  phase: string; // group key
+  week: string;
+  session: string;
+}
 
 function toExercise(t: string[]): Exercise {
   return {
@@ -37,24 +57,74 @@ function toExercise(t: string[]): Exercise {
   };
 }
 
-const phases = (raw as RawProgram).phases;
+type RawGroup = { name: string; sessions?: Record<string, string[][]> };
+type RawDays = Record<string, string[][]>;
 
-export const PROGRAM: Program = Object.fromEntries(
-  Object.entries(phases).map(([key, phase]) => [
+function buildSessions(rows: RawDays): Record<string, Exercise[]> {
+  return Object.fromEntries(
+    Object.entries(rows).map(([s, list]) => [s, list.map(toExercise)]),
+  );
+}
+
+// --- BBR: { meta, phases: { "1": { name, sessions } } } ---
+const bbrPhases = (bbrRaw as { phases: Record<string, RawGroup> }).phases;
+const bbrGroups: Record<string, ProgramGroup> = Object.fromEntries(
+  Object.entries(bbrPhases).map(([key, phase]) => [
     key,
-    {
-      name: phase.name,
-      sessions: Object.fromEntries(
-        Object.entries(phase.sessions).map(([sName, rows]) => [
-          sName,
-          rows.map(toExercise),
-        ]),
-      ),
-    } satisfies Phase,
+    { name: phase.name, sessions: buildSessions(phase.sessions ?? {}) },
   ]),
 );
 
-export const PHASE_KEYS = Object.keys(PROGRAM);
+const BBR: ProgramDef = {
+  id: 'bbr',
+  name: 'Body By Rings',
+  short: 'BBR',
+  brandHtml: 'Body By <span>Rings</span>',
+  groupNoun: 'Phase',
+  weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Deload'],
+  groups: bbrGroups,
+  deloadHtml:
+    '<div class="deload"><b>Deload week.</b> Cut volume hard — do <b>1–2 sets</b> per exercise (2–3 for your main pull-up/chin-up). Same reps and tempo, leave 3–4 reps in the tank. Recover.</div>',
+};
 
-/** Default starting selection. */
-export const DEFAULT_CUR = { phase: '1', week: 'Week 1', session: 'Push 1' };
+// --- ATG: { meta, weeks, blocks: { "1": { name, days }, "2": { days: "SAME_AS_BLOCK_1" } } } ---
+type RawAtgBlock = { name: string; days: RawDays | 'SAME_AS_BLOCK_1' };
+const atg = atgRaw as {
+  weeks: string[];
+  blocks: Record<string, RawAtgBlock>;
+  atg_standards?: AtgStandard[];
+};
+
+const block1Days = atg.blocks['1'].days as RawDays;
+const atgGroups: Record<string, ProgramGroup> = Object.fromEntries(
+  Object.entries(atg.blocks).map(([key, block]) => {
+    // Resolve the SAME_AS_BLOCK_1 sentinel: blocks 2 & 3 reuse block 1's days.
+    const days = block.days === 'SAME_AS_BLOCK_1' ? block1Days : block.days;
+    return [key, { name: block.name, sessions: buildSessions(days) }];
+  }),
+);
+
+const ATG: ProgramDef = {
+  id: 'atg',
+  name: 'ATG · Knees Over Toes',
+  short: 'ATG',
+  brandHtml: '<span>ATG</span> Knees Over Toes',
+  groupNoun: 'Block',
+  weeks: atg.weeks,
+  groups: atgGroups,
+  deloadHtml:
+    '<div class="deload"><b>Deload week.</b> Cut total sets ~40%, keep loads moderate, no new PRs. Use the recovery to retest 2–3 ATG standards instead of pushing load.</div>',
+  standards: atg.atg_standards,
+};
+
+export const PROGRAMS: Record<ProgramId, ProgramDef> = { bbr: BBR, atg: ATG };
+export const PROGRAM_IDS: ProgramId[] = ['bbr', 'atg'];
+
+export const getProgram = (id: ProgramId): ProgramDef => PROGRAMS[id];
+
+/** Default selection for a program: first group, first week, first session. */
+export function defaultSel(id: ProgramId): Sel {
+  const p = PROGRAMS[id];
+  const phase = Object.keys(p.groups)[0];
+  return { phase, week: p.weeks[0], session: Object.keys(p.groups[phase].sessions)[0] };
+}
