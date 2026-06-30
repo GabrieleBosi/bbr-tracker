@@ -28,6 +28,17 @@ export interface Cur extends Sel {
   program: ProgramId;
 }
 
+/** PR-tracker progress for one ATG standard. */
+export interface StandardEntry {
+  best: string;
+  date: string;
+  met: boolean;
+}
+/** Keyed by standard name. */
+export type StandardsMap = Record<string, StandardEntry>;
+/** Reserved key under which standards travel inside a backup/export blob. */
+export const STANDARDS_KEY = '__standards__';
+
 const DB_NAME = 'bbr';
 const DB_VERSION = 1;
 const LEGACY_KEY = 'bbr_log_v1';
@@ -44,6 +55,8 @@ const defaultCur = (): Cur => ({ program: 'bbr', ...defaultSel('bbr') });
 let cur: Cur = defaultCur();
 /** Last-used selection per program, so switching restores where you left off. */
 const curByProgram: Partial<Record<ProgramId, Sel>> = {};
+/** ATG standards PR-tracker progress, keyed by standard name. */
+let standards: StandardsMap = {};
 let migrated = false;
 
 export async function initStore(): Promise<void> {
@@ -79,6 +92,11 @@ export async function initStore(): Promise<void> {
     week: cur.week,
     session: cur.session,
   };
+
+  const savedStd = (await db.get('meta', 'atgStandards')) as
+    | StandardsMap
+    | undefined;
+  if (savedStd) standards = savedStd;
 }
 
 /** One-time import of the single-file prototype's localStorage data. */
@@ -180,10 +198,30 @@ export function ensureEntry(
   return log[ek];
 }
 
+/** ATG standards progress (a copy). */
+export function getStandards(): StandardsMap {
+  const out: StandardsMap = {};
+  for (const k of Object.keys(standards)) out[k] = { ...standards[k] };
+  return out;
+}
+
+/** Upsert one standard's progress (write-through). */
+export function setStandard(name: string, entry: StandardEntry): void {
+  standards[name] = entry;
+  void db.put('meta', standards, 'atgStandards');
+}
+
+/** Replace all standards (after a sync merge or restore). */
+export async function setStandards(map: StandardsMap): Promise<void> {
+  standards = map;
+  await db.put('meta', map, 'atgStandards');
+}
+
 /** Backup blob — same flat shape the prototype produced (cur + logKeys). */
 export function exportData(): Record<string, unknown> {
   const out: Record<string, unknown> = { cur };
   for (const k of Object.keys(memory)) out[k] = memory[k];
+  if (Object.keys(standards).length) out[STANDARDS_KEY] = standards;
   return out;
 }
 
@@ -201,6 +239,9 @@ export async function importData(obj: Record<string, unknown>): Promise<void> {
         session: c.session ?? defaultSel('bbr').session,
       };
       await tx.objectStore('meta').put(cur, 'cur');
+    } else if (key === STANDARDS_KEY) {
+      standards = obj[key] as StandardsMap;
+      await tx.objectStore('meta').put(standards, 'atgStandards');
     } else {
       const nk = normalizeLogKey(key);
       memory[nk] = obj[key] as SessionLog;
@@ -221,10 +262,12 @@ export async function clearAll(): Promise<void> {
   cur = defaultCur();
   for (const k of Object.keys(curByProgram))
     delete curByProgram[k as ProgramId];
+  standards = {};
   const tx = db.transaction(['logs', 'meta'], 'readwrite');
   await tx.objectStore('logs').clear();
   await tx.objectStore('meta').put(cur, 'cur');
   await tx.objectStore('meta').delete('curByProgram');
+  await tx.objectStore('meta').delete('atgStandards');
   await tx.done;
 }
 

@@ -16,8 +16,10 @@ import {
   type ExEntry,
 } from '../storage/db';
 import { weeklyStats } from '../logic/stats';
+import { DAY_NAMES, todayTarget } from '../logic/schedule';
 import { renderChartSVG } from './chart';
 import { initDataMenu } from './dataMenu';
+import { initStandards } from './standards';
 import { initRestControls, startRest } from './restTimer';
 
 const cssId = (s: string): string => s.replace(/[^a-zA-Z0-9]/g, '_');
@@ -344,12 +346,46 @@ function setBrand(program: ProgramId): void {
   if (brand) brand.innerHTML = getProgram(program).brandHtml;
 }
 
+function renderTodayBanner(): void {
+  const el = document.getElementById('todayBanner')!;
+  const cur = getCur();
+  const t = todayTarget();
+  const prog = getProgram(t.program);
+  const here = cur.program === t.program && cur.session === t.session;
+
+  const banner = makeEl('div', 'today');
+  const label = makeEl('span', 'today-label');
+  label.innerHTML = `<span class="today-day">${DAY_NAMES[new Date().getDay()]}</span> · <b>${prog.short} · ${t.session}</b>`;
+  banner.append(label);
+
+  if (here) {
+    const tag = makeEl('span', 'today-here');
+    tag.textContent = "today's session ✓";
+    banner.append(tag);
+  } else {
+    const go = makeEl('button', 'mini acc');
+    go.textContent = 'Go';
+    go.addEventListener('click', () => {
+      setCur({ program: t.program, ...rememberedSel(t.program), session: t.session });
+      render();
+    });
+    banner.append(go);
+  }
+  el.replaceChildren(banner);
+}
+
 export function render(): void {
   const cur = getCur();
   const prog = getProgram(cur.program);
   setBrand(cur.program);
   renderSelectors();
+  renderTodayBanner();
   renderMigrateBanner();
+
+  const stdBtn = document.querySelector(
+    '[data-open-standards]',
+  ) as HTMLButtonElement | null;
+  if (stdBtn) stdBtn.hidden = cur.program !== 'atg';
 
   const db = document.getElementById('deloadBanner')!;
   db.innerHTML = cur.week === 'Deload' ? prog.deloadHtml : '';
@@ -366,5 +402,6 @@ export function render(): void {
 export function renderApp(): void {
   initRestControls();
   initDataMenu(render);
+  initStandards();
   render();
 }

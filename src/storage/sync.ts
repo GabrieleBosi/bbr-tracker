@@ -1,5 +1,5 @@
 import { normalizeLogKey } from '../logic/progression';
-import type { ExEntry, SessionLog } from './db';
+import type { ExEntry, SessionLog, StandardsMap } from './db';
 
 /**
  * Cross-device sync via a private GitHub Gist.
@@ -28,6 +28,12 @@ export interface SyncBlob {
   version: 1;
   updatedAt: string;
   logs: Record<string, SessionLog>;
+  standards?: StandardsMap;
+}
+
+interface RemoteData {
+  logs: Record<string, SessionLog>;
+  standards: StandardsMap;
 }
 
 export function getCfg(): SyncCfg {
@@ -69,6 +75,27 @@ export function mergeLogs(
   return out;
 }
 
+/** Merge standards: per name keep the later-dated entry; met sticks if either met. */
+export function mergeStandards(a: StandardsMap, b: StandardsMap): StandardsMap {
+  const out: StandardsMap = {};
+  for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const ea = a[k];
+    const eb = b[k];
+    if (!ea || !eb) {
+      out[k] = ea || eb;
+      continue;
+    }
+    let chosen = eb;
+    if ((ea.date || '') !== (eb.date || '')) {
+      chosen = (ea.date || '') > (eb.date || '') ? ea : eb;
+    } else if ((ea.best !== '') !== (eb.best !== '')) {
+      chosen = ea.best !== '' ? ea : eb;
+    }
+    out[k] = { best: chosen.best, date: chosen.date, met: ea.met || eb.met };
+  }
+  return out;
+}
+
 async function gh(
   path: string,
   token: string,
@@ -91,13 +118,10 @@ async function gh(
   return res.json();
 }
 
-async function pull(
-  token: string,
-  gistId: string,
-): Promise<Record<string, SessionLog>> {
+async function pull(token: string, gistId: string): Promise<RemoteData> {
   const data = await gh(`/gists/${gistId}`, token);
   const file = data.files?.[FILE];
-  if (!file) return {};
+  if (!file) return { logs: {}, standards: {} };
   // GitHub inlines content up to ~1MB; fetch raw_url if truncated.
   const content: string = file.truncated
     ? await (await fetch(file.raw_url)).text()
@@ -108,9 +132,9 @@ async function pull(
     // Normalize legacy 3-part keys so they merge instead of duplicating.
     const out: Record<string, SessionLog> = {};
     for (const k of Object.keys(logs)) out[normalizeLogKey(k)] = logs[k];
-    return out;
+    return { logs: out, standards: blob.standards || {} };
   } catch {
-    return {};
+    return { logs: {}, standards: {} };
   }
 }
 
@@ -118,12 +142,14 @@ async function push(
   token: string,
   gistId: string | undefined,
   logs: Record<string, SessionLog>,
+  standards: StandardsMap,
 ): Promise<string> {
   const blob: SyncBlob = {
     app: 'bbr',
     version: 1,
     updatedAt: new Date().toISOString(),
     logs,
+    standards,
   };
   const body = JSON.stringify({
     ...(gistId ? {} : { description: 'Body By Rings Tracker data', public: false }),
@@ -139,6 +165,7 @@ export interface SyncResult {
   gistId: string;
   lastSynced: string;
   sessions: number;
+  standards: number;
 }
 
 /**
@@ -147,19 +174,30 @@ export interface SyncResult {
  */
 export async function syncNow(
   localLogs: Record<string, SessionLog>,
-  applyMerged: (logs: Record<string, SessionLog>) => Promise<void>,
+  applyLogs: (logs: Record<string, SessionLog>) => Promise<void>,
+  localStandards: StandardsMap,
+  applyStandards: (s: StandardsMap) => Promise<void>,
 ): Promise<SyncResult> {
   const cfg = getCfg();
   if (!cfg.token) throw new Error('Add a GitHub token first (gist scope).');
 
-  const remote = cfg.gistId ? await pull(cfg.token, cfg.gistId) : {};
-  const merged = mergeLogs(localLogs, remote);
-  await applyMerged(merged);
-  const gistId = await push(cfg.token, cfg.gistId, merged);
+  const remote = cfg.gistId
+    ? await pull(cfg.token, cfg.gistId)
+    : { logs: {}, standards: {} };
+  const mergedLogs = mergeLogs(localLogs, remote.logs);
+  await applyLogs(mergedLogs);
+  const mergedStd = mergeStandards(localStandards, remote.standards);
+  await applyStandards(mergedStd);
+  const gistId = await push(cfg.token, cfg.gistId, mergedLogs, mergedStd);
 
   const lastSynced = new Date().toISOString();
   setCfg({ ...cfg, gistId, lastSynced });
-  return { gistId, lastSynced, sessions: Object.keys(merged).length };
+  return {
+    gistId,
+    lastSynced,
+    sessions: Object.keys(mergedLogs).length,
+    standards: Object.keys(mergedStd).length,
+  };
 }
 
 /**
@@ -167,7 +205,8 @@ export async function syncNow(
  * Useful for restoring a device whose local data got messed up.
  */
 export async function downloadFromCloud(
-  applyRemote: (logs: Record<string, SessionLog>) => Promise<void>,
+  applyLogs: (logs: Record<string, SessionLog>) => Promise<void>,
+  applyStandards: (s: StandardsMap) => Promise<void>,
 ): Promise<SyncResult> {
   const cfg = getCfg();
   if (!cfg.token) throw new Error('Add a GitHub token first (gist scope).');
@@ -175,9 +214,15 @@ export async function downloadFromCloud(
     throw new Error('No gist yet — run Sync once to create one first.');
 
   const remote = await pull(cfg.token, cfg.gistId);
-  await applyRemote(remote);
+  await applyLogs(remote.logs);
+  await applyStandards(remote.standards);
 
   const lastSynced = new Date().toISOString();
   setCfg({ ...cfg, lastSynced });
-  return { gistId: cfg.gistId, lastSynced, sessions: Object.keys(remote).length };
+  return {
+    gistId: cfg.gistId,
+    lastSynced,
+    sessions: Object.keys(remote.logs).length,
+    standards: Object.keys(remote.standards).length,
+  };
 }

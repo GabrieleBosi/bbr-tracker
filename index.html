@@ -15,7 +15,10 @@
   <header>
     <div class="htop">
       <div class="brand" id="brand">Body By <span>Rings</span></div>
-      <button class="iconbtn" data-open-menu>Data</button>
+      <div class="hbtns">
+        <button class="iconbtn" data-open-standards hidden>★ Standards</button>
+        <button class="iconbtn" data-open-menu>Data</button>
+      </div>
     </div>
     <div class="pills" id="programPills"></div>
     <div class="pills" id="phasePills"></div>
@@ -24,6 +27,7 @@
   </header>
 
   <div class="wrap">
+    <div id="todayBanner"></div>
     <div id="migrateBanner"></div>
     <div id="deloadBanner"></div>
     <div id="exList"></div>
@@ -76,6 +80,15 @@
       <div class="syncstatus" id="syncStatus"></div>
 
       <button class="bigbtn" data-close-menu>Close</button>
+    </div>
+  </div>
+
+  <div class="modal" id="standards">
+    <div class="sheet">
+      <h3>ATG Standards</h3>
+      <p>Benchmarks to chase. Log your best result and the date, then tick a standard when you hit its target. Saved on this device and included in backup/sync.</p>
+      <div id="stdList"></div>
+      <button class="bigbtn" data-close-standards>Close</button>
     </div>
   </div>
 

@@ -2,8 +2,11 @@ import {
   clearAll,
   exportData,
   getLogs,
+  getStandards,
   importData,
   setLogs,
+  setStandards,
+  STANDARDS_KEY,
   type SessionLog,
 } from '../storage/db';
 import {
@@ -41,7 +44,7 @@ function exportCSV(): void {
     ['program', 'phase', 'week', 'session', 'exercise', 'set', 'reps', 'load', 'note'],
   ];
   for (const lk of Object.keys(data)) {
-    if (lk === 'cur') continue;
+    if (lk === 'cur' || lk === STANDARDS_KEY) continue;
     const [program, phase, week, session] = normalizeLogKey(lk).split('|');
     const log = data[lk] as SessionLog;
     for (const ek of Object.keys(log)) {
@@ -181,7 +184,8 @@ function initSync(rerender: () => void): void {
       const res = await action();
       gistEl.value = res.gistId;
       statusEl.className = 'syncstatus ok';
-      statusEl.textContent = `${verb} ${res.sessions} sessions at ${fmtTime(res.lastSynced)}. Gist: ${res.gistId}`;
+      const std = res.standards ? `, ${res.standards} standards` : '';
+      statusEl.textContent = `${verb} ${res.sessions} sessions${std} at ${fmtTime(res.lastSynced)}. Gist: ${res.gistId}`;
       rerender();
     } catch (e) {
       statusEl.className = 'syncstatus err';
@@ -194,7 +198,9 @@ function initSync(rerender: () => void): void {
   };
 
   syncBtn.addEventListener('click', () =>
-    run(syncBtn, 'Syncing…', 'Synced', () => syncNow(getLogs(), setLogs)),
+    run(syncBtn, 'Syncing…', 'Synced', () =>
+      syncNow(getLogs(), setLogs, getStandards(), setStandards),
+    ),
   );
 
   dlBtn.addEventListener('click', () => {
@@ -205,7 +211,7 @@ function initSync(rerender: () => void): void {
     )
       return;
     void run(dlBtn, 'Downloading…', 'Downloaded', () =>
-      downloadFromCloud(setLogs),
+      downloadFromCloud(setLogs, setStandards),
     );
   });
 }
