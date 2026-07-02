@@ -1,9 +1,12 @@
 import {
   clearAll,
   exportData,
+  EXTRAS_KEY,
+  getExtras,
   getLogs,
   getStandards,
   importData,
+  setExtras,
   setLogs,
   setStandards,
   STANDARDS_KEY,
@@ -48,7 +51,7 @@ function exportCSV(): void {
     ['program', 'phase', 'week', 'session', 'exercise', 'set', 'reps', 'load', 'note'],
   ];
   for (const lk of Object.keys(data)) {
-    if (lk === 'cur' || lk === STANDARDS_KEY) continue;
+    if (lk === 'cur' || lk === STANDARDS_KEY || lk === EXTRAS_KEY) continue;
     const [program, phase, week, session] = normalizeLogKey(lk).split('|');
     const log = data[lk] as SessionLog;
     for (const ek of Object.keys(log)) {
@@ -72,6 +75,35 @@ function exportCSV(): void {
   }
   const csv = rows.map((r) => r.map(csvCell).join(',')).join('\n');
   download(`bbr-history-${today()}.csv`, csv, 'text/csv');
+
+  // Extras get their own cardio-shaped file; stagger so both downloads land.
+  const extras = getExtras();
+  if (Object.keys(extras).length) setTimeout(exportExtrasCSV, 400);
+}
+
+function exportExtrasCSV(): void {
+  const rows: (string | number)[][] = [
+    ['date', 'activity', 'name', 'min', 'km', 'rpe', 'hr', 'load_kg', 'elev_m', 'note'],
+  ];
+  const extras = getExtras();
+  for (const date of Object.keys(extras).sort()) {
+    for (const e of extras[date]) {
+      rows.push([
+        date,
+        e.activity,
+        e.name,
+        e.min,
+        e.km,
+        e.rpe,
+        e.hr,
+        e.loadKg,
+        e.elevM,
+        e.note.replace(/\n/g, ' '),
+      ]);
+    }
+  }
+  const csv = rows.map((r) => r.map(csvCell).join(',')).join('\n');
+  download(`bbr-extras-${today()}.csv`, csv, 'text/csv');
 }
 
 /** Wire the Data sheet. `rerender` redraws the app after restore/wipe. */
@@ -189,7 +221,8 @@ function initSync(rerender: () => void): void {
       gistEl.value = res.gistId;
       statusEl.className = 'syncstatus ok';
       const std = res.standards ? `, ${res.standards} standards` : '';
-      statusEl.textContent = `${verb} ${res.sessions} sessions${std} at ${fmtTime(res.lastSynced)}. Gist: ${res.gistId}`;
+      const ext = res.extras ? `, ${res.extras} extras` : '';
+      statusEl.textContent = `${verb} ${res.sessions} sessions${std}${ext} at ${fmtTime(res.lastSynced)}. Gist: ${res.gistId}`;
       rerender();
     } catch (e) {
       statusEl.className = 'syncstatus err';
@@ -201,9 +234,14 @@ function initSync(rerender: () => void): void {
     }
   };
 
+  const applyAll = { logs: setLogs, standards: setStandards, extras: setExtras };
+
   syncBtn.addEventListener('click', () =>
     run(syncBtn, 'Syncing…', 'Synced', () =>
-      syncNow(getLogs(), setLogs, getStandards(), setStandards),
+      syncNow(
+        { logs: getLogs(), standards: getStandards(), extras: getExtras() },
+        applyAll,
+      ),
     ),
   );
 
@@ -215,7 +253,7 @@ function initSync(rerender: () => void): void {
     )
       return;
     void run(dlBtn, 'Downloading…', 'Downloaded', () =>
-      downloadFromCloud(setLogs, setStandards),
+      downloadFromCloud(applyAll),
     );
   });
 }

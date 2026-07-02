@@ -59,6 +59,13 @@ header {
 .hbtns {
   display: flex;
   gap: 6px;
+  flex: 0 0 auto;
+}
+.brand {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .iconbtn {
   background: var(--card2);
@@ -173,8 +180,87 @@ header {
   font-size: 12px;
   font-weight: 600;
 }
+.today {
+  flex-wrap: wrap;
+}
 .today .mini {
   flex: 0 0 auto;
+}
+.today-pm {
+  flex: 0 0 auto;
+  color: var(--acc2);
+}
+.today-pm.done {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--acc);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.chips .pill.on {
+  background: var(--acc3);
+  color: #07152e;
+  border-color: var(--acc3);
+}
+.xdate {
+  margin-bottom: 10px;
+}
+.xgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.xgrid .syncin {
+  margin-bottom: 0;
+}
+.xsave {
+  width: 100%;
+  margin-bottom: 4px;
+}
+.xdatehead {
+  color: var(--mut);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin: 12px 0 6px;
+}
+.xrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 11px;
+  margin-bottom: 6px;
+}
+.xbody {
+  flex: 1;
+  min-width: 0;
+}
+.xtitle {
+  font-size: 14px;
+  font-weight: 700;
+}
+.xsub {
+  color: var(--mut);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.xdel {
+  flex: 0 0 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--mut);
+  font-size: 14px;
 }
 .std {
   background: var(--card2);

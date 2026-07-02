@@ -39,8 +39,29 @@ export type StandardsMap = Record<string, StandardEntry>;
 /** Reserved key under which standards travel inside a backup/export blob. */
 export const STANDARDS_KEY = '__standards__';
 
+/** One logged cardio/core entry in the Extras diary. */
+export interface ExtraEntry {
+  id: string;
+  activity: string;
+  /** Free-text name when activity is "Other". */
+  name: string;
+  min: string;
+  km: string;
+  rpe: string;
+  hr: string;
+  loadKg: string;
+  elevM: string;
+  note: string;
+  /** Creation timestamp — conflict tiebreaker in sync merges. */
+  ts: number;
+}
+/** Keyed by local date (YYYY-MM-DD); multiple entries per day allowed. */
+export type ExtrasMap = Record<string, ExtraEntry[]>;
+/** Reserved key under which extras travel inside a backup/export blob. */
+export const EXTRAS_KEY = '__extras__';
+
 const DB_NAME = 'bbr';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // v2 adds the 'extras' store
 const LEGACY_KEY = 'bbr_log_v1';
 const SCHEMA = 2; // 2 = program-namespaced log keys
 
@@ -57,15 +78,34 @@ let cur: Cur = defaultCur();
 const curByProgram: Partial<Record<ProgramId, Sel>> = {};
 /** ATG standards PR-tracker progress, keyed by standard name. */
 let standards: StandardsMap = {};
+/** Extras diary (cardio + core), keyed by local date. */
+const extras: ExtrasMap = {};
 let migrated = false;
 
+const upgrade = (d: IDBPDatabase) => {
+  if (!d.objectStoreNames.contains('logs')) d.createObjectStore('logs');
+  if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta');
+  if (!d.objectStoreNames.contains('extras')) d.createObjectStore('extras');
+};
+
 export async function initStore(): Promise<void> {
-  db = await openDB(DB_NAME, DB_VERSION, {
-    upgrade(d) {
-      if (!d.objectStoreNames.contains('logs')) d.createObjectStore('logs');
-      if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta');
-    },
-  });
+  try {
+    db = await openDB(DB_NAME, DB_VERSION, { upgrade });
+  } catch (e) {
+    // DB is newer than this code expects (e.g. rollback) — open as-is.
+    if (e instanceof DOMException && e.name === 'VersionError') {
+      db = await openDB(DB_NAME, undefined, { upgrade });
+    } else {
+      throw e;
+    }
+  }
+  // Self-heal: if the DB somehow committed a version without all stores
+  // (interrupted upgrade), force one more versionchange to create them.
+  if (!db.objectStoreNames.contains('extras')) {
+    const v = db.version + 1;
+    db.close();
+    db = await openDB(DB_NAME, v, { upgrade });
+  }
 
   await migrateFromLocalStorage();
 
@@ -97,6 +137,9 @@ export async function initStore(): Promise<void> {
     | StandardsMap
     | undefined;
   if (savedStd) standards = savedStd;
+
+  const extraKeys = await db.getAllKeys('extras');
+  for (const k of extraKeys) extras[k as string] = await db.get('extras', k);
 }
 
 /** One-time import of the single-file prototype's localStorage data. */
@@ -217,11 +260,45 @@ export async function setStandards(map: StandardsMap): Promise<void> {
   await db.put('meta', map, 'atgStandards');
 }
 
+export const getExtras = (): ExtrasMap => extras;
+
+/** Append one diary entry under a date (write-through). */
+export function addExtra(date: string, entry: ExtraEntry): void {
+  const list = extras[date] || (extras[date] = []);
+  list.push(entry);
+  void db.put('extras', list, date);
+}
+
+/** Delete one diary entry by id (write-through). */
+export function deleteExtra(date: string, id: string): void {
+  const list = extras[date];
+  if (!list) return;
+  const next = list.filter((e) => e.id !== id);
+  if (next.length) {
+    extras[date] = next;
+    void db.put('extras', next, date);
+  } else {
+    delete extras[date];
+    void db.delete('extras', date);
+  }
+}
+
+/** Replace the whole diary (after a sync merge or restore). */
+export async function setExtras(map: ExtrasMap): Promise<void> {
+  for (const k of Object.keys(extras)) delete extras[k];
+  Object.assign(extras, map);
+  const tx = db.transaction('extras', 'readwrite');
+  await tx.objectStore('extras').clear();
+  for (const k of Object.keys(map)) await tx.objectStore('extras').put(map[k], k);
+  await tx.done;
+}
+
 /** Backup blob — same flat shape the prototype produced (cur + logKeys). */
 export function exportData(): Record<string, unknown> {
   const out: Record<string, unknown> = { cur };
   for (const k of Object.keys(memory)) out[k] = memory[k];
   if (Object.keys(standards).length) out[STANDARDS_KEY] = standards;
+  if (Object.keys(extras).length) out[EXTRAS_KEY] = extras;
   return out;
 }
 
@@ -242,6 +319,9 @@ export async function importData(obj: Record<string, unknown>): Promise<void> {
     } else if (key === STANDARDS_KEY) {
       standards = obj[key] as StandardsMap;
       await tx.objectStore('meta').put(standards, 'atgStandards');
+    } else if (key === EXTRAS_KEY) {
+      // Restored outside this tx (separate store); memory updated in setExtras.
+      continue;
     } else {
       const nk = normalizeLogKey(key);
       memory[nk] = obj[key] as SessionLog;
@@ -250,6 +330,7 @@ export async function importData(obj: Record<string, unknown>): Promise<void> {
   }
   await tx.objectStore('meta').put(SCHEMA, 'schema');
   await tx.done;
+  if (obj[EXTRAS_KEY]) await setExtras(obj[EXTRAS_KEY] as ExtrasMap);
   curByProgram[cur.program] = {
     phase: cur.phase,
     week: cur.week,
@@ -263,8 +344,10 @@ export async function clearAll(): Promise<void> {
   for (const k of Object.keys(curByProgram))
     delete curByProgram[k as ProgramId];
   standards = {};
-  const tx = db.transaction(['logs', 'meta'], 'readwrite');
+  for (const k of Object.keys(extras)) delete extras[k];
+  const tx = db.transaction(['logs', 'meta', 'extras'], 'readwrite');
   await tx.objectStore('logs').clear();
+  await tx.objectStore('extras').clear();
   await tx.objectStore('meta').put(cur, 'cur');
   await tx.objectStore('meta').delete('curByProgram');
   await tx.objectStore('meta').delete('atgStandards');

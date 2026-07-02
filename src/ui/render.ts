@@ -14,6 +14,7 @@ import {
 import {
   ensureEntry,
   getCur,
+  getExtras,
   getMemory,
   justMigrated,
   rememberedSel,
@@ -23,8 +24,10 @@ import {
 } from '../storage/db';
 import { weeklyStats } from '../logic/stats';
 import { DAY_NAMES, todayTarget } from '../logic/schedule';
+import { localDateISO } from '../data/extras';
 import { renderChartSVG } from './chart';
 import { initDataMenu } from './dataMenu';
+import { initExtras, openExtras } from './extras';
 import { initStandards } from './standards';
 import { initRestControls, startRest } from './restTimer';
 
@@ -411,6 +414,21 @@ function renderTodayBanner(): void {
     });
     banner.append(go);
   }
+
+  // Afternoon extras: abs daily, cardio ad-hoc. ✓ once logged today.
+  const absDone = (getExtras()[localDateISO()] || []).some(
+    (e) => e.activity === 'Abs',
+  );
+  if (absDone) {
+    const pm = makeEl('span', 'today-pm done');
+    pm.textContent = 'PM: Abs ✓';
+    banner.append(pm);
+  } else {
+    const pm = makeEl('button', 'mini today-pm');
+    pm.textContent = 'PM: Abs +';
+    pm.addEventListener('click', () => openExtras('Abs'));
+    banner.append(pm);
+  }
   el.replaceChildren(banner);
 }
 
@@ -443,5 +461,6 @@ export function renderApp(): void {
   initRestControls();
   initDataMenu(render);
   initStandards();
+  initExtras(render);
   render();
 }
