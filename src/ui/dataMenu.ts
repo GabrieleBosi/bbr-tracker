@@ -20,6 +20,10 @@ import { normalizeLogKey } from '../logic/progression';
 
 const today = (): string => new Date().toISOString().slice(0, 10);
 
+/** RFC 4180 cell: wrap in quotes, double any embedded quotes. */
+export const csvCell = (c: string | number): string =>
+  `"${String(c).replace(/"/g, '""')}"`;
+
 function download(name: string, content: string, type: string): void {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
@@ -66,7 +70,7 @@ function exportCSV(): void {
       });
     }
   }
-  const csv = rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+  const csv = rows.map((r) => r.map(csvCell).join(',')).join('\n');
   download(`bbr-history-${today()}.csv`, csv, 'text/csv');
 }
 

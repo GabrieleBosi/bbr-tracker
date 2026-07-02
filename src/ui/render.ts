@@ -4,7 +4,13 @@ import {
   type Exercise,
   type ProgramId,
 } from '../data/program';
-import { exKey, lastTime, logKey, suggest } from '../logic/progression';
+import {
+  exKey,
+  lastTime,
+  latestLogged,
+  logKey,
+  suggest,
+} from '../logic/progression';
 import {
   ensureEntry,
   getCur,
@@ -24,6 +30,23 @@ import { initRestControls, startRest } from './restTimer';
 
 const cssId = (s: string): string => s.replace(/[^a-zA-Z0-9]/g, '_');
 const MIGRATE_ACK = 'bbr_migrate_ack_v2';
+
+/** Escape user-entered text before interpolating into innerHTML. */
+const escHtml = (s: string): string =>
+  s.replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
+        c
+      ]!,
+  );
+
+/** "8@20" style summary of the logged sets, HTML-safe. */
+const setsSummary = (e: ExEntry): string =>
+  e.sets
+    .filter((x) => x.reps !== '')
+    .map((x) => x.reps + (x.load ? `@${escHtml(x.load)}` : ''))
+    .join(', ');
 
 function makeEl<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -178,12 +201,8 @@ function historyRows(ek: string): string {
   for (const w of prog.weeks) {
     const e = (store[logKey(cur.program, cur.phase, w, cur.session)] || {})[ek];
     if (e && e.sets.some((x) => x.reps !== '')) {
-      const v = e.sets
-        .filter((x) => x.reps !== '')
-        .map((x) => x.reps + (x.load ? `@${x.load}` : ''))
-        .join(', ');
       const tot = e.sets.reduce((a, x) => a + (parseInt(x.reps) || 0), 0);
-      rows += `<div class="hist-line"><span>${w}</span><b>${v} &nbsp;(${tot})</b></div>`;
+      rows += `<div class="hist-line"><span>${w}</span><b>${setsSummary(e)} &nbsp;(${tot})</b></div>`;
     }
   }
   return rows || '<div class="hist-line"><span>No history yet</span></div>';
@@ -211,7 +230,7 @@ function card(ex: Exercise): HTMLElement {
   c.append(meta);
 
   const last = makeEl('div', 'last');
-  const lt = lastTime(
+  let lt = lastTime(
     getMemory(),
     cur.program,
     cur.phase,
@@ -220,13 +239,30 @@ function card(ex: Exercise): HTMLElement {
     cur.week,
     prog.weeks,
   );
+  let ltLabel = lt?.week ?? '';
+  // ATG blocks share exercises by design — reach back into earlier blocks
+  // when the current one has no history yet (e.g. Block 2 · Week 1).
+  if (!lt && cur.program === 'atg') {
+    const groupKeys = Object.keys(prog.groups);
+    for (let gi = groupKeys.indexOf(cur.phase) - 1; gi >= 0; gi--) {
+      const r = latestLogged(
+        getMemory(),
+        cur.program,
+        groupKeys[gi],
+        cur.session,
+        ek,
+        prog.weeks,
+      );
+      if (r) {
+        lt = r;
+        ltLabel = `${prog.groups[groupKeys[gi]].name} · ${r.week}`;
+        break;
+      }
+    }
+  }
   if (lt) {
-    const prev = lt.e.sets
-      .filter((x) => x.reps !== '')
-      .map((x) => x.reps + (x.load ? `@${x.load}` : ''))
-      .join(', ');
     const sug = suggest(lt.e, ex.reps);
-    last.innerHTML = `Last (${lt.week}): <b>${prev || '—'}</b>${
+    last.innerHTML = `Last (${ltLabel}): <b>${setsSummary(lt.e) || '—'}</b>${
       sug ? ` &nbsp;&middot;&nbsp; try <b>${sug}</b>` : ''
     }`;
   } else {
@@ -250,11 +286,15 @@ function card(ex: Exercise): HTMLElement {
   delBtn.textContent = '− set';
   delBtn.addEventListener('click', () => {
     const sets = curEntry(ek).sets;
-    if (sets.length > 1) {
-      sets.pop();
-      persistCur();
-      render();
+    if (sets.length <= 1) return;
+    const lastSet = sets[sets.length - 1];
+    const hasData = lastSet.reps !== '' || lastSet.load !== '' || lastSet.done;
+    if (hasData && !confirm(`Remove set ${sets.length}? It has logged data.`)) {
+      return;
     }
+    sets.pop();
+    persistCur();
+    render();
   });
   const restBtn = makeEl('button', 'mini acc');
   restBtn.textContent = 'Rest timer';

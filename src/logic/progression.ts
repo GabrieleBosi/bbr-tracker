@@ -95,6 +95,29 @@ export function lastTime(
   return best ? { week: weeks[bestRank], e: best } : null;
 }
 
+/**
+ * Latest logged week for an exercise anywhere in a group (scans weeks from the
+ * end). Used for ATG's cross-block fallback: blocks share the same exercises,
+ * so "last time" should reach back into the previous block when the current
+ * one has no history yet.
+ */
+export function latestLogged(
+  store: Record<string, SessionLog>,
+  program: string,
+  phase: string,
+  session: string,
+  ek: string,
+  weeks: string[],
+): LastResult | null {
+  for (let wi = weeks.length - 1; wi >= 0; wi--) {
+    const e = (store[logKey(program, phase, weeks[wi], session)] || {})[ek];
+    if (e && e.sets.some((x) => x.reps !== '')) {
+      return { week: weeks[wi], e };
+    }
+  }
+  return null;
+}
+
 /** Seconds from a rest string like "1:30" or "2:00-3:00" (uses the first value). */
 export function parseRest(rest: string): number {
   const m = rest.match(/(\d+):(\d+)/);

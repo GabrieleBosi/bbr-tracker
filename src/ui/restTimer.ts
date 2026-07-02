@@ -1,21 +1,45 @@
 import { parseRest } from '../logic/progression';
 
+/**
+ * Countdown computed from an end timestamp, not a decremented counter —
+ * browsers throttle intervals in background tabs / locked phones, and a
+ * per-tick counter silently drifts long. A timestamp stays correct no matter
+ * how rarely the tick fires.
+ */
+let endAt = 0;
 let restT: number | null = null;
-let restLeft = 0;
+let audio: AudioContext | null = null;
 
 const restEl = () => document.getElementById('rest')!;
 const restTimeEl = () => document.getElementById('restTime')!;
 
+const secsLeft = (): number => Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+
 function draw(): void {
-  const m = Math.floor(Math.max(0, restLeft) / 60);
-  const s = Math.max(0, restLeft) % 60;
+  const left = secsLeft();
+  const m = Math.floor(left / 60);
+  const s = left % 60;
   restTimeEl().textContent = `${m}:${String(s).padStart(2, '0')}`;
+}
+
+/**
+ * iOS Safari only lets audio start from a user gesture. startRest() IS a tap,
+ * so we create/resume the context there and reuse it when the timer expires.
+ */
+function ensureAudio(): void {
+  try {
+    const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+    audio = audio ?? new Ctx();
+    if (audio.state === 'suspended') void audio.resume();
+  } catch {
+    /* audio not available */
+  }
 }
 
 function beep(): void {
   try {
-    const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-    const a = new Ctx();
+    const a = audio;
+    if (!a) return;
     const o = a.createOscillator();
     const g = a.createGain();
     o.connect(g);
@@ -31,24 +55,24 @@ function beep(): void {
 }
 
 export function startRest(rest: string): void {
-  restLeft = parseRest(rest);
+  ensureAudio();
+  endAt = Date.now() + parseRest(rest) * 1000;
   restEl().classList.add('show');
   draw();
   if (restT) clearInterval(restT);
   restT = window.setInterval(() => {
-    restLeft--;
     draw();
-    if (restLeft <= 0) {
+    if (secsLeft() <= 0) {
       if (restT) clearInterval(restT);
       if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
       beep();
       setTimeout(stopRest, 1500);
     }
-  }, 1000);
+  }, 250);
 }
 
 export function addRest(s: number): void {
-  restLeft += s;
+  endAt += s * 1000;
   draw();
 }
 
