@@ -12,6 +12,9 @@ calisthenics workouts from your phone during training.
 - Real **PWA**: web manifest + service worker → installs to the home screen, works offline.
 - Per-exercise **progress chart** (total reps per week + top-set marker), drawn as inline SVG.
 - Optional **cross-device sync** via a private GitHub Gist (token stays on-device).
+- **TRAVEL program** — a minimum-effective-dose bodyweight+bands plan for long trips
+  (Push A / Pull B near-failure sessions + daily Knee Zero ATG maintenance), with
+  **Trip mode** dates (Data sheet) that switch the Today suggestion while away.
 
 ## Cross-device sync
 

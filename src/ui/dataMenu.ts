@@ -20,6 +20,7 @@ import {
   type SyncResult,
 } from '../storage/sync';
 import { normalizeLogKey } from '../logic/progression';
+import { getTrip, onTrip, setTrip } from '../logic/schedule';
 
 const today = (): string => new Date().toISOString().slice(0, 10);
 
@@ -160,7 +161,43 @@ export function initDataMenu(rerender: () => void): void {
     }
   });
 
+  initTrip(rerender);
   initSync(rerender);
+}
+
+function initTrip(rerender: () => void): void {
+  const startEl = document.getElementById('tripStart') as HTMLInputElement;
+  const endEl = document.getElementById('tripEnd') as HTMLInputElement;
+  const statusEl = document.getElementById('tripStatus')!;
+
+  const paint = () => {
+    const t = getTrip();
+    if (t.start && t.end) {
+      statusEl.className = onTrip() ? 'syncstatus ok' : 'syncstatus';
+      statusEl.textContent = onTrip()
+        ? `On trip until ${t.end} — Today suggests TRAVEL.`
+        : `Trip saved: ${t.start} → ${t.end}.`;
+    } else {
+      statusEl.className = 'syncstatus';
+      statusEl.textContent = 'No trip set.';
+    }
+  };
+
+  const saved = getTrip();
+  if (saved.start) startEl.value = saved.start;
+  if (saved.end) endEl.value = saved.end;
+  paint();
+
+  const save = () => {
+    setTrip({
+      start: startEl.value || undefined,
+      end: endEl.value || undefined,
+    });
+    paint();
+    rerender();
+  };
+  startEl.addEventListener('change', save);
+  endEl.addEventListener('change', save);
 }
 
 function fmtTime(iso: string): string {

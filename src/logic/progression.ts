@@ -1,7 +1,7 @@
 import type { ExEntry, SessionLog } from '../storage/db';
 
 /** Program prefixes that mark an already-namespaced log key. */
-export const KNOWN_PROGRAMS = ['bbr', 'atg'] as const;
+export const KNOWN_PROGRAMS = ['bbr', 'atg', 'travel'] as const;
 
 /** `program|phase|week|session` */
 export const logKey = (

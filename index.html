@@ -59,6 +59,18 @@
         <button class="bigbtn warn" data-wipe>Reset all</button>
       </div>
 
+      <h3 class="synch">Trip mode</h3>
+      <p>
+        Set your travel dates. While away, <b>Today</b> suggests the TRAVEL plan:
+        two hard sessions (<b>Push A</b> Mon, <b>Pull B</b> Thu) and easy
+        <b>Knee Zero</b> maintenance every other day.
+      </p>
+      <div class="row">
+        <input class="syncin tripdate" id="tripStart" type="date" />
+        <input class="syncin tripdate" id="tripEnd" type="date" />
+      </div>
+      <div class="syncstatus" id="tripStatus"></div>
+
       <h3 class="synch">Sync across devices</h3>
       <p>
         Optional. Merges this device with a <b>private GitHub Gist</b> so phone and

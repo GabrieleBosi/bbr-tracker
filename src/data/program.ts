@@ -1,5 +1,6 @@
 import bbrRaw from './program.json';
 import atgRaw from './atg_program.json';
+import travelRaw from './travel_program.json';
 
 /** One exercise row from a program. */
 export interface Exercise {
@@ -23,7 +24,7 @@ export interface AtgStandard {
   target: string;
 }
 
-export type ProgramId = 'bbr' | 'atg';
+export type ProgramId = 'bbr' | 'atg' | 'travel';
 
 export interface ProgramDef {
   id: ProgramId;
@@ -117,8 +118,37 @@ const ATG: ProgramDef = {
   standards: atg.atg_standards,
 };
 
-export const PROGRAMS: Record<ProgramId, ProgramDef> = { bbr: BBR, atg: ATG };
-export const PROGRAM_IDS: ProgramId[] = ['bbr', 'atg'];
+// --- Travel: BBR-shaped raw ({ phases }) plus its own weeks array ---
+const travel = travelRaw as {
+  weeks: string[];
+  phases: Record<string, RawGroup>;
+};
+const travelGroups: Record<string, ProgramGroup> = Object.fromEntries(
+  Object.entries(travel.phases).map(([key, phase]) => [
+    key,
+    { name: phase.name, sessions: buildSessions(phase.sessions ?? {}) },
+  ]),
+);
+
+const TRAVEL: ProgramDef = {
+  id: 'travel',
+  name: 'Travel · Minimum Effective Dose',
+  short: 'TRAVEL',
+  brandHtml: '<span>Travel</span> Min Dose',
+  groupNoun: 'Cycle',
+  weeks: travel.weeks,
+  groups: travelGroups,
+  // No Deload week in the cycle, so this banner never renders — kept for shape.
+  deloadHtml:
+    '<div class="deload"><b>Deload.</b> Ease off: keep moving, skip the hard sets.</div>',
+};
+
+export const PROGRAMS: Record<ProgramId, ProgramDef> = {
+  bbr: BBR,
+  atg: ATG,
+  travel: TRAVEL,
+};
+export const PROGRAM_IDS: ProgramId[] = ['bbr', 'atg', 'travel'];
 
 export const getProgram = (id: ProgramId): ProgramDef => PROGRAMS[id];
 
