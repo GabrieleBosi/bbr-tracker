@@ -36,13 +36,14 @@ export function onTrip(d: Date = new Date()): boolean {
 }
 
 /**
- * Travel-week suggestion: the two near-failure sessions land Mon (Push A) and
- * Thu (Pull B) — maximally spread; every other day suggests the easy Knee Zero
- * maintenance so the default action is "move a little".
+ * Travel-week suggestion: two near-failure strength days (Mon Upper, Thu Lower)
+ * maximally spread, one conditioning day (Sat Circuit); every other day defaults
+ * to easy Knee Zero maintenance so the default action is "move a little".
  */
 const TRAVEL_SPLIT: Record<number, string> = {
-  1: 'Push A',
-  4: 'Pull B',
+  1: 'Upper',
+  4: 'Lower',
+  6: 'Circuit',
 };
 
 /**

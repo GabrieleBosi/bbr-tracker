@@ -389,6 +389,51 @@ function setBrand(program: ProgramId): void {
   if (brand) brand.innerHTML = getProgram(program).brandHtml;
 }
 
+/** Alpha part of a letter code: "A1" → "A", "B2" → "B". */
+const letterPrefix = (letter: string): string =>
+  letter.replace(/\d.*$/, '') || letter;
+
+/**
+ * Build the exercise list, wrapping consecutive same-prefix exercises (A1+A2)
+ * in a superset block. Programs with unique letters per exercise (BBR/ATG)
+ * render unchanged — every group is size 1.
+ */
+function renderExerciseList(exercises: Exercise[]): HTMLElement[] {
+  const nodes: HTMLElement[] = [];
+  let i = 0;
+  while (i < exercises.length) {
+    const prefix = letterPrefix(exercises[i].letter);
+    let j = i + 1;
+    while (j < exercises.length && letterPrefix(exercises[j].letter) === prefix) {
+      j++;
+    }
+    if (j - i >= 2) {
+      const wrap = makeEl('div', 'superset');
+      const head = makeEl('div', 'superset-head');
+      head.textContent = `Superset ${prefix} · alternate, short rest`;
+      wrap.append(head);
+      for (let k = i; k < j; k++) wrap.append(card(exercises[k]));
+      nodes.push(wrap);
+    } else {
+      nodes.push(card(exercises[i]));
+    }
+    i = j;
+  }
+  return nodes;
+}
+
+function renderFormatBanner(program: ProgramId, session: string): void {
+  const el = document.getElementById('formatBanner')!;
+  const note = getProgram(program).sessionNotes?.[session];
+  if (!note) {
+    el.innerHTML = '';
+    return;
+  }
+  const banner = makeEl('div', 'formatbanner');
+  banner.innerHTML = `<b>${note.style}.</b> ${note.detail}`;
+  el.replaceChildren(banner);
+}
+
 function renderTodayBanner(): void {
   const el = document.getElementById('todayBanner')!;
   const cur = getCur();
@@ -448,9 +493,11 @@ export function render(): void {
   const db = document.getElementById('deloadBanner')!;
   db.innerHTML = cur.week === 'Deload' ? prog.deloadHtml : '';
 
+  renderFormatBanner(cur.program, cur.session);
+
   const list = document.getElementById('exList')!;
   list.replaceChildren(
-    ...prog.groups[cur.phase].sessions[cur.session].map((ex) => card(ex)),
+    ...renderExerciseList(prog.groups[cur.phase].sessions[cur.session]),
   );
 
   document.getElementById('footNote')!.textContent =

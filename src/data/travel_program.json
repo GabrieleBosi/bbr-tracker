@@ -1,34 +1,51 @@
 {
   "meta": {
-    "program": "Travel — Minimum Effective Dose (bodyweight + bands)",
-    "structure": "One repeating 4-week cycle. Minimum dose: Push A + Pull B once each per week, sets taken 0-2 reps from failure. Knee Zero is the daily/easy ATG maintenance session — do it as often as you like, it is not fatiguing.",
+    "program": "Travel — Minimum Effective Dose (bodyweight + bands, multi-style)",
+    "structure": "A menu of session formats — pick by time and energy. Two hard strength days (Upper + Lower antagonist supersets) hold strength/size for weeks; Circuit and HIIT add density and conditioning; Knee Zero is the easy daily ATG maintenance. One repeating 4-week cycle.",
     "exercise_fields": ["letter", "name", "cue", "sets", "reps", "tempo", "rest"],
-    "tempo_notation": "4 digits = eccentric/bottom-pause/concentric/top-pause seconds (e.g. 30X1 = 3s down, 0s pause, eXplosive up, 1s hold). '-' = not a tempo movement (walks, holds, stretches).",
-    "progression": "Leverage double progression: add reps within the range; once all sets hit the top, move to a harder VARIATION (more foot elevation, more pseudo-planche lean, floor shrimp instead of elevated, slower eccentric) and reset reps to the low end. Intensity is the non-negotiable — research shows 1-2 near-failure sessions/week maintains strength and size for months, but only if sets end 0-2 reps from failure.",
-    "sources": "Spiering et al. 2021 (J Strength Cond Res) maintenance dose; Sports Medicine 2024 minimal-dose overview; Ben Patrick Knee Ability Zero (zero-equipment ATG); r/bodyweightfitness progression charts.",
-    "equipment": "None required. A light resistance band restores rows/face pulls if packed. Furniture substitutes: bed/chair = foot elevation, sturdy table = rows, doorframe = sissy squat assist, towel = sliding leg curls, stairs = Patrick step / calf raises."
+    "superset_convention": "Exercises that share a letter group (A1 + A2) are an antagonist SUPERSET — done back to back, alternating, with short rest. The app groups them visually. A lone letter (D1) is a standalone exercise or a mechanical drop-set finisher.",
+    "tempo_notation": "4 digits = eccentric/bottom-pause/concentric/top-pause seconds (e.g. 30X1). '-' = not a tempo movement (holds, sprints, timed intervals).",
+    "styles": "Antagonist supersets (Upper/Lower): pairs push with pull / quad with hamstring — ~half the time, same gains. Circuit/AMRAP (Full-Body): all moves back to back, repeat for rounds. Mechanical drop set (the D-finishers): hardest leverage to failure, drop to an easier variation, continue with no rest. HIIT/Tabata: 20s max effort / 10s rest x8 per move.",
+    "progression": "Leverage double progression within the rep range; when all sets hit the top, move to a harder VARIATION and reset. Intensity is non-negotiable: 1-2 near-failure sessions/week maintains strength and size for months (Spiering 2021; Sports Medicine 2024 minimal-dose review).",
+    "sources": "Supersets: Iversen/Weakley meta-analysis 2025 (Sports Med); Tabata 1996 / BodySpec protocol; mechanical drop sets (leverage) per calisthenics practice; Ben Patrick Knee Ability Zero.",
+    "equipment": "None required. A light band restores rows/face pulls/curls. Furniture: bed/chair = elevation, table = rows, doorframe = sissy assist, towel = leg curls + iso holds, stairs = Patrick step / calf raises."
   },
   "weeks": ["Week 1", "Week 2", "Week 3", "Week 4"],
   "phases": {
     "1": {
       "name": "Travel",
       "sessions": {
-        "Push A": [
-          ["A1", "Pike Pushup → Wall HSPU", "Hardest variation you can do for 0-2 reps in reserve", "3-4", "5-10", "30X1", "2:00"],
-          ["B1", "Feet-Elevated Pushup", "Bed/chair; add pseudo-planche lean to progress", "3-4", "8-15", "30X1", "1:30"],
-          ["C1", "Shrimp / Pistol Squat", "Hold furniture for balance; elevate front foot to regress", "3-4", "4-8 L&R", "30X1", "2:00"],
-          ["D1", "Sissy Squat", "Doorframe assist; shins toward parallel", "3", "8-15", "30X0", "1:30"],
-          ["E1", "Diamond Pushup or Band Triceps Ext", "", "3", "10-15", "30X1", "1:30"],
-          ["F1", "Hollow Body Hold", "Lower back pressed to floor", "3", "20-40s", "-", "1:00"]
+        "Upper": [
+          ["A1", "Pike Pushup → Wall HSPU", "Push — hardest version for 1-2 reps in reserve", "3-4", "5-10", "30X1", "0:45"],
+          ["A2", "Table Row or Towel-Door Row", "Pull — slow, hard 1s squeeze at the top", "3-4", "6-12", "30X2", "1:00"],
+          ["B1", "Feet-Elevated Pushup", "Push — bed/chair; add pseudo-planche lean", "3-4", "8-15", "30X1", "0:45"],
+          ["B2", "Band Face Pull / Pull-Apart", "Pull — external rotation at the end", "3-4", "12-20", "20X1", "1:00"],
+          ["C1", "Diamond Pushup or Band Triceps Ext", "Push — elbows tucked", "3", "10-15", "30X1", "0:45"],
+          ["C2", "Band or Towel Iso Curl", "Pull — hard squeeze", "3", "10-15", "30X1", "1:00"],
+          ["D1", "Pushup Mechanical Drop Set", "Finisher — pseudo-planche → feet-flat → knees, no rest. Each set = one drop to failure.", "3", "max", "-", "2:00"]
         ],
-        "Pull B": [
-          ["A1", "Under-Table Row or Towel-Door Row", "Slow with a hard 1s squeeze; feet further forward = harder", "3-4", "6-12", "30X2", "2:00"],
-          ["B1", "Band Row", "Anchor to door/post, heaviest tension, pause at chest", "3-4", "10-15", "20X1", "1:30"],
-          ["C1", "Sliding Leg Curl", "Towel under heels, bridge high, curl in slow", "3", "6-12", "40X0", "2:00"],
-          ["D1", "Band Face Pull / Pull-Apart", "External rotation at the end", "3", "12-20", "20X1", "1:00"],
-          ["E1", "Single-Leg RDL", "Bodyweight or band under foot; 3s down", "3", "8-12 L&R", "30X1", "1:30"],
-          ["F1", "Band Curl or Towel Iso Curl", "", "3", "10-15", "30X1", "1:00"],
-          ["G1", "Side Plank", "", "2-3", "30-45s", "-", "0:45"]
+        "Lower": [
+          ["A1", "Shrimp / Pistol Squat", "Quad — hold furniture for balance; elevate front foot to regress", "3-4", "4-8 L&R", "30X1", "0:45"],
+          ["A2", "Sliding Leg Curl", "Hamstring — towel under heels, bridge high, curl in slow", "3-4", "6-12", "40X0", "1:00"],
+          ["B1", "Sissy Squat", "Quad/knee — doorframe assist; shins toward parallel", "3", "8-15", "30X0", "0:45"],
+          ["B2", "Single-Leg RDL", "Hip/hamstring — 3s down; band under foot to load", "3", "8-12 L&R", "30X1", "1:00"],
+          ["C1", "Single-Leg Calf Raise", "Lower leg — full stretch at the bottom, stair edge", "3", "12-20 L&R", "30X1", "0:45"],
+          ["C2", "Tibialis Wall Raise", "Lower leg (antagonist) — butt to wall, toes up, 2s hold", "3", "20-25", "-", "1:00"],
+          ["D1", "Squat Mechanical Drop Set", "Finisher — pistol → split squat → bodyweight squat, no rest. Each set = one drop.", "2", "max L&R", "-", "2:00"]
+        ],
+        "Circuit": [
+          ["A1", "Bodyweight Squat", "Full depth, controlled", "3", "15-20", "-", "0:15"],
+          ["B1", "Pushup", "Scale to incline/knees to keep moving", "3", "10-20", "-", "0:15"],
+          ["C1", "Reverse Lunge", "Alternating legs", "3", "10-16", "-", "0:15"],
+          ["D1", "Table or Band Row", "Pull — squeeze the blades", "3", "10-15", "-", "0:15"],
+          ["E1", "Mountain Climber or Squat Thrust", "Fast, steady breathing", "3", "30-45s", "-", "0:15"],
+          ["F1", "Hollow Hold or Plank", "Core — brace hard", "3", "30-45s", "-", "1:30"]
+        ],
+        "HIIT": [
+          ["A1", "Burpees", "Full extension up, chest to floor down", "1", "8×20s", "-", "1:00"],
+          ["B1", "Mountain Climbers", "Fast knees, flat back", "1", "8×20s", "-", "1:00"],
+          ["C1", "Squat Jumps", "Soft landing, full depth", "1", "8×20s", "-", "1:00"],
+          ["D1", "High Knees or Plank Shoulder Taps", "Max turnover / anti-rotation", "1", "8×20s", "-", "1:00"]
         ],
         "Knee Zero": [
           ["A1", "Backward Walk", "Anywhere — hallway, park, hill; knees over toes", "-", "5-10 min", "-", "self"],

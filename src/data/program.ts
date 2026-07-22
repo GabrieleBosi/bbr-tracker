@@ -26,6 +26,12 @@ export interface AtgStandard {
 
 export type ProgramId = 'bbr' | 'atg' | 'travel';
 
+/** How a session is meant to be run — drives the format banner above the cards. */
+export interface SessionNote {
+  style: string;
+  detail: string;
+}
+
 export interface ProgramDef {
   id: ProgramId;
   name: string; // full name
@@ -37,6 +43,8 @@ export interface ProgramDef {
   groups: Record<string, ProgramGroup>;
   deloadHtml: string;
   standards?: AtgStandard[];
+  /** Optional per-session format note, keyed by session name. */
+  sessionNotes?: Record<string, SessionNote>;
 }
 
 /** A selection within a program (no program id). */
@@ -141,6 +149,33 @@ const TRAVEL: ProgramDef = {
   // No Deload week in the cycle, so this banner never renders — kept for shape.
   deloadHtml:
     '<div class="deload"><b>Deload.</b> Ease off: keep moving, skip the hard sets.</div>',
+  sessionNotes: {
+    Upper: {
+      style: 'Antagonist supersets',
+      detail:
+        'Do A1, rest ~45s, A2, rest ~60s, repeat. Push paired with pull — ~half the time, same gains. Take the last superset near failure, then the drop-set finisher.',
+    },
+    Lower: {
+      style: 'Antagonist supersets',
+      detail:
+        'Alternate each paired quad/hamstring move with short rest. Use furniture for balance on pistols/shrimps. Finish with the squat drop set if you have gas.',
+    },
+    Circuit: {
+      style: 'Circuit · AMRAP',
+      detail:
+        'All six moves back to back for one round, ~15s transitions, rest 60–90s between rounds. 3–5 rounds, or AMRAP in 20 min. Log each round as a set.',
+    },
+    HIIT: {
+      style: 'HIIT · Tabata',
+      detail:
+        'Each move: 20s max effort / 10s rest × 8 (4 min), then 1 min rest before the next. Bring a stopwatch or interval app. Tick the set done when the block is complete.',
+    },
+    'Knee Zero': {
+      style: 'Easy maintenance',
+      detail:
+        'Do as often as daily — never to failure. This is knee health and mobility, not a hard session.',
+    },
+  },
 };
 
 export const PROGRAMS: Record<ProgramId, ProgramDef> = {
