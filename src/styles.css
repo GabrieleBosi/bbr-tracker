@@ -555,6 +555,107 @@ header {
   font-size: 14px;
   margin-left: 8px;
 }
+.ivoverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  transition: background 0.2s;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.ivoverlay.show {
+  display: flex;
+}
+.ivoverlay.work {
+  background: #0d2a1c;
+}
+.ivoverlay.rest {
+  background: #10233f;
+}
+.ivoverlay.prep {
+  background: #2a2410;
+}
+.ivoverlay.done {
+  background: #0d2a1c;
+}
+.ivinner {
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+  text-align: center;
+}
+.ivphase {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: var(--mut);
+}
+.ivoverlay.work .ivphase {
+  color: var(--acc);
+}
+.ivoverlay.rest .ivphase {
+  color: var(--acc3);
+}
+.ivoverlay.prep .ivphase,
+.ivoverlay.done .ivphase {
+  color: var(--acc2);
+}
+.ivoverlay.done .ivphase {
+  color: var(--acc);
+}
+.ivcount {
+  font-size: 30vw;
+  line-height: 1.05;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--txt);
+}
+@media (min-width: 480px) {
+  .ivcount {
+    font-size: 140px;
+  }
+}
+.ivround {
+  font-size: 15px;
+  color: var(--mut);
+  margin-bottom: 24px;
+}
+.ivfields {
+  display: flex;
+  gap: 10px;
+  margin: 14px 0;
+}
+.ivfields label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--mut);
+}
+.ivfields input {
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--txt);
+  padding: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+.ivbtns {
+  display: flex;
+  gap: 10px;
+}
+.ivbtns .bigbtn {
+  flex: 1;
+}
+#ivConfig h3 {
+  margin: 0 0 4px;
+}
 .modal {
   position: fixed;
   inset: 0;

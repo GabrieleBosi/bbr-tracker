@@ -30,6 +30,7 @@ import { initDataMenu } from './dataMenu';
 import { initExtras, openExtras } from './extras';
 import { initStandards } from './standards';
 import { initRestControls, startRest } from './restTimer';
+import { initIntervalTimer, openInterval, parseInterval } from './intervalTimer';
 
 const cssId = (s: string): string => s.replace(/[^a-zA-Z0-9]/g, '_');
 const MIGRATE_ACK = 'bbr_migrate_ack_v2';
@@ -306,7 +307,16 @@ function card(ex: Exercise): HTMLElement {
   histBtn.textContent = 'History';
   const chartBtn = makeEl('button', 'mini');
   chartBtn.textContent = 'Chart';
-  foot.append(addBtn, delBtn, restBtn, histBtn, chartBtn);
+  foot.append(addBtn, delBtn, restBtn);
+  // Interval exercises (e.g. "8×20s") get a Tabata timer button.
+  const iv = parseInterval(ex.reps);
+  if (iv) {
+    const ivBtn = makeEl('button', 'mini acc');
+    ivBtn.textContent = 'Interval';
+    ivBtn.addEventListener('click', () => openInterval(iv));
+    foot.append(ivBtn);
+  }
+  foot.append(histBtn, chartBtn);
   c.append(foot);
 
   const hist = makeEl('div', 'hist');
@@ -506,6 +516,7 @@ export function render(): void {
 
 export function renderApp(): void {
   initRestControls();
+  initIntervalTimer();
   initDataMenu(render);
   initStandards();
   initExtras(render);

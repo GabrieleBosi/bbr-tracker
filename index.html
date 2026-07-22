@@ -117,6 +117,33 @@
     </div>
   </div>
 
+  <div id="interval" class="ivoverlay">
+    <div class="ivinner">
+      <div id="ivConfig">
+        <h3>Interval / Tabata timer</h3>
+        <p class="synchint">Work / rest intervals with beeps + vibration. Defaults to Tabata: 8 × 20s work / 10s rest.</p>
+        <div class="ivfields">
+          <label>Rounds<input id="ivRounds" type="number" inputmode="numeric" min="1" /></label>
+          <label>Work s<input id="ivWork" type="number" inputmode="numeric" min="1" /></label>
+          <label>Rest s<input id="ivRest" type="number" inputmode="numeric" min="0" /></label>
+        </div>
+        <div class="ivbtns">
+          <button class="bigbtn acc" data-iv-start>Start</button>
+          <button class="bigbtn" data-iv-close>Close</button>
+        </div>
+      </div>
+      <div id="ivRun" style="display: none">
+        <div class="ivphase" id="ivPhase">GET READY</div>
+        <div class="ivcount" id="ivCount">5</div>
+        <div class="ivround" id="ivRound"></div>
+        <div class="ivbtns">
+          <button class="bigbtn" data-iv-pause>Pause</button>
+          <button class="bigbtn warn" data-iv-stop>Stop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
